@@ -1,22 +1,93 @@
 'use client'
+
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Play, RotateCcw, Award, Brain, Calculator, ArrowRight, 
   CheckCircle, XCircle, Activity, Zap, Star, Trophy, 
-  BookOpen, Lightbulb, Settings, ChevronRight, Hash, Wind 
+  BookOpen, Lightbulb, Settings, ChevronRight, Hash, Wind, Zap as Lightning,
+  Moon, Sun
 } from 'lucide-react';
 
-// --- DESIGN SYSTEM (Shadcn-like) ---
+// --- OPERATION CONSTANTS ---
+
+const OPERATIONS = {
+  ADD: 'addition',
+  SUB: 'subtraction',
+  MULT: 'multiplication',
+  DIV: 'division',
+  BODMAS: 'bodmas'
+};
+
+// --- BADGE CONSTANTS (Shared) ---
+
+const BADGES = [
+  { id: 'first_steps', name: 'First Breath', icon: '🍃', desc: 'Complete your first session', condition: (stats) => stats.totalGames >= 1 },
+  { id: 'speed_demon', name: 'Thunder Bolt', icon: '⚡', desc: 'Answer in under 2 seconds', condition: (stats) => stats.fastestAnswer <= 2 && stats.fastestAnswer > 0 },
+  { id: 'perfect_streak', name: 'Total Concentration', icon: '🔥', desc: 'Get 100% accuracy in a session', condition: (stats) => stats.perfectSessions >= 1 },
+  { id: 'scholar', name: 'Wisteria Master', icon: '🌸', desc: 'Reach Hashira (Level 5)', condition: (stats) => stats.level >= 5 },
+  { id: 'night_owl', name: 'Night Watch', icon: '🌙', desc: 'Practice after 10 PM', condition: (stats) => stats.lateNightGames >= 1 },
+];
+
+// --- THEME & LEVEL CONFIGURATIONS ---
+
+// 1. Demon Slayer Configuration
+const DEMON_SLAYER_THEME = {
+  DARK_BG: 'bg-gray-900',
+  DARK_TEXT: 'text-gray-100',
+  ACCENT_TEAL: 'text-teal-400',
+  ACCENT_RED: 'text-red-500',
+  ACCENT_BG_RED: 'bg-red-600',
+  ACCENT_BG_TEAL: 'bg-teal-500',
+  ACCENT_RING_TEAL: 'focus-visible:ring-teal-400',
+  BUTTON_PRIMARY: "bg-gray-800 text-gray-100 hover:bg-red-800 shadow-lg shadow-gray-700/50",
+  CARD_DEFAULT: "rounded-xl border border-gray-700 bg-gray-800 text-gray-100 shadow-2xl",
+};
+
+const DEMON_SLAYER_LEVELS = [
+  { id: 1, name: "Mizunoto", description: "Water Breathing: Addition & Subtraction (1-10)", ops: [OPERATIONS.ADD, OPERATIONS.SUB], range: [1, 10], terms: 2, timeLimit: 15, xpMultiplier: 1, colorClass: "text-blue-400" },
+  { id: 2, name: "Hinoto", description: "Thunder Breathing: Intro to Mult & Div (2-12)", ops: [OPERATIONS.MULT, OPERATIONS.DIV], range: [2, 12], terms: 2, timeLimit: 20, xpMultiplier: 1.5, colorClass: "text-yellow-400" },
+  { id: 3, name: "Kanoe", description: "Mist Breathing: Mixed Ops & Larger Numbers (10-50)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [10, 50], terms: 2, timeLimit: 25, xpMultiplier: 2, colorClass: "text-gray-400" },
+  { id: 4, name: "Tsuchinoto", description: "Flame Breathing: Complex Mixed Operations (20-100)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [20, 100], terms: 2, timeLimit: 30, xpMultiplier: 3, colorClass: "text-red-500" },
+  { id: 5, name: "Hashira", description: "Sun Breathing: BODMAS & Logic Chains (Pillar Rank)", ops: [OPERATIONS.BODMAS], range: [5, 20], terms: 3, timeLimit: 45, xpMultiplier: 5, colorClass: "text-amber-300" }
+];
+
+// 2. Normal Configuration
+const NORMAL_THEME = {
+  DARK_BG: 'bg-gray-50',
+  DARK_TEXT: 'text-gray-900',
+  ACCENT_TEAL: 'text-indigo-600',
+  ACCENT_RED: 'text-red-600',
+  ACCENT_BG_RED: 'bg-red-600',
+  ACCENT_BG_TEAL: 'bg-indigo-600',
+  ACCENT_RING_TEAL: 'focus-visible:ring-indigo-500',
+  BUTTON_PRIMARY: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-500/50",
+  CARD_DEFAULT: "rounded-xl border border-gray-300 bg-white text-gray-900 shadow-xl",
+};
+
+const NORMAL_LEVELS = [
+  { id: 1, name: "Easy", description: "Standard: Addition & Subtraction (1-10)", ops: [OPERATIONS.ADD, OPERATIONS.SUB], range: [1, 10], terms: 2, timeLimit: 15, xpMultiplier: 1, colorClass: "text-green-500" },
+  { id: 2, name: "Medium", description: "Standard: Intro to Mult & Div (2-12)", ops: [OPERATIONS.MULT, OPERATIONS.DIV], range: [2, 12], terms: 2, timeLimit: 20, xpMultiplier: 1.5, colorClass: "text-blue-500" },
+  { id: 3, name: "Hard", description: "Advanced: Mixed Ops & Larger Numbers (10-50)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [10, 50], terms: 2, timeLimit: 25, xpMultiplier: 2, colorClass: "text-purple-500" },
+  { id: 4, name: "Expert", description: "Expert: Complex Mixed Operations (20-100)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [20, 100], terms: 2, timeLimit: 30, xpMultiplier: 3, colorClass: "text-orange-500" },
+  { id: 5, name: "Master", description: "Master: BODMAS & Logic Chains", ops: [OPERATIONS.BODMAS], range: [5, 20], terms: 3, timeLimit: 45, xpMultiplier: 5, colorClass: "text-red-500" }
+];
+
+
+// --- DESIGN SYSTEM (Dynamic) ---
 
 const cn = (...classes) => classes.filter(Boolean).join(' ');
 
-const Button = ({ children, variant = "default", size = "default", className, ...props }) => {
+// Button, Card, and Badge components now accept 'currentTheme' via props or context (using props for simplicity here)
+
+const DynamicButton = ({ children, variant = "default", size = "default", className, currentTheme, ...props }) => {
   const variants = {
-    default: "bg-slate-900 text-white hover:bg-slate-800",
-    outline: "border border-slate-200 bg-white hover:bg-slate-100 text-slate-900",
-    ghost: "hover:bg-slate-100 text-slate-700",
-    secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
-    destructive: "bg-red-500 text-white hover:bg-red-600",
+    default: currentTheme.BUTTON_PRIMARY,
+    outline: cn("border border-gray-700", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-800 hover:bg-gray-700 text-gray-100" : "bg-white hover:bg-gray-100 text-gray-800"),
+    ghost: cn("hover:bg-gray-700", currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-400" : "text-gray-600 hover:bg-gray-100"),
+    secondary: cn(currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 text-gray-100 hover:bg-gray-600" : "bg-gray-200 text-gray-900 hover:bg-gray-300"),
+    destructive: "bg-red-700 text-white hover:bg-red-800",
+    themed: cn(currentTheme.ACCENT_BG_TEAL, "text-white hover:opacity-90"),
   };
   const sizes = {
     default: "h-10 px-4 py-2",
@@ -27,7 +98,9 @@ const Button = ({ children, variant = "default", size = "default", className, ..
   return (
     <button 
       className={cn(
-        "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-current transition-colors focus-visible:outline-none focus-visible:ring-2",
+        currentTheme.ACCENT_RING_TEAL,
+        "focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         variants[variant],
         sizes[size],
         className
@@ -39,53 +112,27 @@ const Button = ({ children, variant = "default", size = "default", className, ..
   );
 };
 
-// FIX: Added ...props to Card to allow onClick events
-const Card = ({ children, className, ...props }) => (
-  <div className={cn("rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm", className)} {...props}>
+const DynamicCard = ({ children, className, currentTheme, ...props }) => (
+  <div className={cn(currentTheme.CARD_DEFAULT, className)} {...props}>
     {children}
   </div>
 );
 
-const Badge = ({ children, variant = "default" }) => {
+const DynamicBadge = ({ children, variant = "default", currentTheme }) => {
   const variants = {
-    default: "border-transparent bg-slate-900 text-slate-50",
-    secondary: "border-transparent bg-slate-100 text-slate-900",
-    outline: "text-slate-950 border-slate-200",
-    success: "border-transparent bg-green-500 text-white",
-    gold: "border-transparent bg-yellow-500 text-white",
+    default: cn(currentTheme.DARK_BG, "border-transparent text-gray-50"),
+    secondary: cn(currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 text-gray-100" : "bg-gray-200 text-gray-900"),
+    outline: cn(currentTheme.DARK_TEXT, currentTheme.DARK_BG === 'bg-gray-900' ? "border-gray-700" : "border-gray-300"),
+    success: "border-transparent bg-green-600 text-white",
+    gold: "border-transparent bg-amber-500 text-gray-900",
   };
   return (
-    <div className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2", variants[variant])}>
+    <div className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2", variants[variant])}>
       {children}
     </div>
   );
 };
 
-// --- CONFIGURATION & LOGIC ---
-
-const OPERATIONS = {
-  ADD: 'addition',
-  SUB: 'subtraction',
-  MULT: 'multiplication',
-  DIV: 'division',
-  BODMAS: 'bodmas'
-};
-
-const BADGES = [
-  { id: 'first_steps', name: 'First Steps', icon: '🦶', desc: 'Complete your first session', condition: (stats) => stats.totalGames >= 1 },
-  { id: 'speed_demon', name: 'Speed Demon', icon: '⚡', desc: 'Answer in under 2 seconds', condition: (stats) => stats.fastestAnswer <= 2 && stats.fastestAnswer > 0 },
-  { id: 'perfect_streak', name: 'Perfectionist', icon: '🎯', desc: 'Get 100% accuracy in a session', condition: (stats) => stats.perfectSessions >= 1 },
-  { id: 'scholar', name: 'Scholar', icon: '🎓', desc: 'Reach Level 5', condition: (stats) => stats.level >= 5 },
-  { id: 'night_owl', name: 'Night Owl', icon: '🦉', desc: 'Practice after 10 PM', condition: (stats) => stats.lateNightGames >= 1 },
-];
-
-const LEVELS = [
-  { id: 1, name: "Novice", description: "Addition & Subtraction (1-10)", ops: [OPERATIONS.ADD, OPERATIONS.SUB], range: [1, 10], terms: 2, timeLimit: 15, xpMultiplier: 1 },
-  { id: 2, name: "Apprentice", description: "Intro to Mult & Div (2-12)", ops: [OPERATIONS.MULT, OPERATIONS.DIV], range: [2, 12], terms: 2, timeLimit: 20, xpMultiplier: 1.5 },
-  { id: 3, name: "Adept", description: "Mixed Ops & Larger Numbers (10-50)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [10, 50], terms: 2, timeLimit: 25, xpMultiplier: 2 },
-  { id: 4, name: "Master", description: "Complex Mixed Operations (20-100)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [20, 100], terms: 2, timeLimit: 30, xpMultiplier: 3 },
-  { id: 5, name: "Grandmaster", description: "BODMAS & Logic Chains", ops: [OPERATIONS.BODMAS], range: [5, 20], terms: 3, timeLimit: 45, xpMultiplier: 5 }
-];
 
 // --- MATH UTILITIES ---
 
@@ -169,6 +216,8 @@ const calculateNextLevelXp = (level) => Math.pow(level, 2) * 100;
 export default function MathMasterApp() {
   const [gameState, setGameState] = useState('menu'); // menu, playing, learning, report, zen
   const [gameMode, setGameMode] = useState('challenge'); // challenge, learning, zen
+  const [theme, setTheme] = useState('demonSlayer');
+  
   const [profile, setProfile] = useState({
     xp: 0,
     level: 1,
@@ -191,18 +240,48 @@ export default function MathMasterApp() {
   const [isRemediation, setIsRemediation] = useState(false);
 
   const timerRef = useRef(null);
-  const inputRef = useRef(null); // For keyboard focus
+  
+  // Dynamic Configuration Selector
+  const { currentTheme, currentLevels } = useMemo(() => {
+    if (theme === 'normal') {
+      return {
+        currentTheme: NORMAL_THEME,
+        currentLevels: NORMAL_LEVELS,
+      };
+    }
+    // Default to Demon Slayer
+    return {
+      currentTheme: DEMON_SLAYER_THEME,
+      currentLevels: DEMON_SLAYER_LEVELS,
+    };
+  }, [theme]);
+  
+  const themeName = theme === 'demonSlayer' ? 'Demon Slayer Corps' : 'Normal Mode';
+  const rankLabel = theme === 'demonSlayer' ? 'Demon Slayer Rank' : 'Skill Level';
+  const rankIcon = theme === 'demonSlayer' ? <Trophy className={currentTheme.ACCENT_RED} /> : <Brain className={currentTheme.ACCENT_TEAL} />;
+  const rankClass = theme === 'demonSlayer' ? 'Total Concentration: Challenge Mode' : 'Standard Challenge Mode';
+  const learningClass = theme === 'demonSlayer' ? 'Breathing Techniques: Learning Mode' : 'Focused Practice';
+  const zenClass = theme === 'demonSlayer' ? 'Zen Mode (No Demon Threat)' : 'Endless Training';
 
   // Load persistence
   useEffect(() => {
     const saved = localStorage.getItem('mathMasterProfile');
     if (saved) setProfile(JSON.parse(saved));
+    const savedTheme = localStorage.getItem('mathMasterTheme');
+    if (savedTheme) setTheme(savedTheme);
   }, []);
 
   // Save persistence
   useEffect(() => {
     localStorage.setItem('mathMasterProfile', JSON.stringify(profile));
-  }, [profile]);
+    localStorage.setItem('mathMasterTheme', theme);
+  }, [profile, theme]);
+  
+  // Theme Toggle Function
+  const toggleTheme = () => {
+    const newTheme = theme === 'demonSlayer' ? 'normal' : 'demonSlayer';
+    setTheme(newTheme);
+  };
 
   // Keyboard support
   useEffect(() => {
@@ -223,7 +302,7 @@ export default function MathMasterApp() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, input, questions, currentIndex]);
+  }, [gameState, input, questions, currentIndex, currentLevels]); // Added currentLevels as dependency for submit/check functions
 
   // --- GAME LOGIC ---
 
@@ -233,7 +312,6 @@ export default function MathMasterApp() {
     setGameMode(mode);
     
     // Generate questions
-    // For Zen mode, we start with 1 and keep adding
     const qCount = mode === 'learning' ? 5 : (mode === 'zen' ? 1 : 10);
     const newQuestions = Array.from({ length: qCount }).map(() => {
       const opToUse = specificOps ? specificOps[getRandomInt(0, specificOps.length - 1)] : null;
@@ -389,62 +467,87 @@ export default function MathMasterApp() {
     const levelProgress = ((profile.xp - prevLevelXp) / (nextLevelXp - prevLevelXp)) * 100;
 
     return (
-      <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900 pb-20">
+      <div className={cn("min-h-screen p-4 md:p-8 font-sans pb-20", currentTheme.DARK_BG, currentTheme.DARK_TEXT)}>
         <div className="max-w-4xl mx-auto space-y-8">
           
+          {/* Theme Toggle */}
+          <div className="flex justify-end">
+            <DynamicButton 
+              currentTheme={currentTheme}
+              variant="outline" 
+              size="sm" 
+              onClick={toggleTheme} 
+              className={cn("border-2", theme === 'demonSlayer' ? "border-red-500" : "border-indigo-500")}
+            >
+              {theme === 'demonSlayer' ? (
+                <span className="flex items-center gap-2 text-red-500">
+                  <Moon className="w-4 h-4" /> Switch to Normal Mode
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 text-indigo-500">
+                  <Sun className="w-4 h-4" /> Switch to Demon Slayer
+                </span>
+              )}
+            </DynamicButton>
+          </div>
+          
+          <h1 className="text-3xl font-black mb-6 text-center">{themeName}</h1>
+
           {/* Header Profile Section */}
-          <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <DynamicCard currentTheme={currentTheme} className={cn("flex flex-col md:flex-row gap-6 items-center justify-between p-6 shadow-xl", theme === 'demonSlayer' ? "border-red-900/50" : "border-indigo-900/50")}>
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-blue-200">
+              <div className={cn("h-16 w-16 rounded-full flex items-center justify-center font-bold text-2xl shadow-lg", currentTheme.ACCENT_BG_TEAL, currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-900 shadow-teal-500/30" : "text-white shadow-indigo-500/30")}>
                 {profile.level}
               </div>
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2">Math Wizard <Badge variant="gold">{profile.xp} XP</Badge></h2>
-                <div className="w-48 h-2 bg-slate-100 rounded-full mt-2 overflow-hidden">
-                  <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${Math.max(5, Math.min(100, levelProgress))}%` }} />
+                <h2 className="text-xl font-bold flex items-center gap-2">{rankLabel} <DynamicBadge currentTheme={currentTheme} variant="gold">{profile.xp} XP</DynamicBadge></h2>
+                <div className="w-48 h-2 bg-gray-700 rounded-full mt-2 overflow-hidden">
+                  <div className={cn("h-full transition-all duration-500", currentTheme.ACCENT_BG_RED)} style={{ width: `${Math.max(5, Math.min(100, levelProgress))}%` }} />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Next Level: {nextLevelXp - profile.xp} XP needed</p>
+                <p className="text-xs text-gray-400 mt-1">Next Rank: {nextLevelXp - profile.xp} XP needed</p>
               </div>
             </div>
             
             {/* Badges Mini View */}
             <div className="flex gap-2">
-              {profile.badges.length === 0 && <span className="text-sm text-slate-400 italic">Play to earn badges!</span>}
+              {profile.badges.length === 0 && <span className="text-sm text-gray-500 italic">Complete Missions to earn Badges!</span>}
               {profile.badges.map(bid => {
                 const b = BADGES.find(x => x.id === bid);
                 return (
-                  <div key={bid} className="h-10 w-10 bg-yellow-100 rounded-full flex items-center justify-center text-xl shadow-sm border border-yellow-200" title={b.name}>
+                  <div key={bid} className={cn("h-10 w-10 rounded-full flex items-center justify-center text-xl shadow-sm border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 border-gray-600" : "bg-gray-100 border-gray-300")} title={b.name}>
                     {b.icon}
                   </div>
                 );
               })}
             </div>
-          </div>
+          </DynamicCard>
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Challenge Mode */}
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <Trophy className="text-yellow-500" />
-                <h3 className="text-lg font-bold">Challenge Mode</h3>
+                {rankIcon}
+                <h3 className="text-lg font-bold">{rankClass}</h3>
               </div>
               <div className="grid gap-4">
-                {LEVELS.map((level) => (
-                  <Card key={level.id} className="p-4 hover:shadow-md transition-shadow group cursor-pointer relative overflow-hidden" onClick={() => startGame(level)}>
+                {currentLevels.map((level) => (
+                  <DynamicCard key={level.id} currentTheme={currentTheme} className={cn("p-4 transition-shadow group cursor-pointer relative overflow-hidden", theme === 'demonSlayer' ? "hover:border-teal-500" : "hover:border-indigo-500")} onClick={() => startGame(level)}>
                     <div className="flex justify-between items-center relative z-10">
                       <div>
-                        <h4 className="font-bold text-slate-800">{level.name}</h4>
-                        <p className="text-sm text-slate-500">{level.description}</p>
+                        <h4 className={cn("font-bold", level.colorClass)}>{level.name}</h4>
+                        <p className="text-sm text-gray-400">{level.description}</p>
                       </div>
-                      <Button variant="ghost" size="icon" className="group-hover:translate-x-1 transition-transform">
+                      <DynamicButton currentTheme={currentTheme} variant="ghost" size="icon" className={cn("group-hover:translate-x-1 transition-transform", currentTheme.ACCENT_TEAL)}>
                         <ChevronRight />
-                      </Button>
+                      </DynamicButton>
                     </div>
                     {/* Background decoration */}
-                    <div className="absolute -right-4 -bottom-4 opacity-5 text-slate-900 rotate-12 group-hover:scale-110 transition-transform">
-                      <Hash size={80} />
-                    </div>
-                  </Card>
+                    {theme === 'demonSlayer' && (
+                      <div className="absolute -right-4 -bottom-4 opacity-5 text-gray-500 rotate-12 group-hover:scale-110 transition-transform">
+                        <Lightning size={80} />
+                      </div>
+                    )}
+                  </DynamicCard>
                 ))}
               </div>
             </section>
@@ -454,41 +557,53 @@ export default function MathMasterApp() {
               {/* Learning Mode */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <BookOpen className="text-blue-500" />
-                  <h3 className="text-lg font-bold">Learning Mode</h3>
+                  <BookOpen className={currentTheme.ACCENT_TEAL} />
+                  <h3 className="text-lg font-bold">{learningClass}</h3>
                 </div>
-                <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
-                  <p className="text-slate-700 mb-6 text-sm leading-relaxed">
-                    Practice without the pressure of a timer. Get hints, explanations, and visual aids.
+                <DynamicCard currentTheme={currentTheme} className={cn("p-6", theme === 'demonSlayer' ? "bg-gradient-to-br from-gray-700 to-gray-800 border-teal-800/50" : "bg-gradient-to-br from-indigo-50 to-white border-indigo-200/50")}>
+                  <p className={cn("mb-6 text-sm leading-relaxed", theme === 'demonSlayer' ? "text-gray-300" : "text-gray-700")}>
+                    Practice the fundamentals without the pressure of a timer. Master each form step-by-step.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
-                    {LEVELS.slice(0, 4).map(l => (
-                      <Button key={l.id} onClick={() => startGame(l, 'learning')} variant="outline" className="bg-white/50 hover:bg-white text-blue-700 border-blue-200">
+                    {currentLevels.slice(0, 4).map(l => (
+                      <DynamicButton 
+                        key={l.id} 
+                        currentTheme={currentTheme}
+                        onClick={() => startGame(l, 'learning')} 
+                        variant="outline" 
+                        className={cn(theme === 'demonSlayer' ? "bg-gray-700 hover:bg-gray-600 text-teal-400 border-teal-800" : "bg-indigo-100 hover:bg-indigo-200 text-indigo-600 border-indigo-300")}
+                      >
                         {l.name}
-                      </Button>
+                      </DynamicButton>
                     ))}
                   </div>
-                </Card>
+                </DynamicCard>
               </div>
 
               {/* Zen Mode */}
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <Wind className="text-teal-500" />
-                  <h3 className="text-lg font-bold">Zen Mode</h3>
+                  <Wind className="text-green-400" />
+                  <h3 className="text-lg font-bold">{zenClass}</h3>
                 </div>
-                <Card className="p-6 bg-gradient-to-br from-teal-50 to-emerald-50 border-teal-100">
-                  <p className="text-slate-700 mb-6 text-sm leading-relaxed">
-                    Infinite practice with no timer and no score. Just you and the math. Relax and focus.
+                <DynamicCard currentTheme={currentTheme} className={cn("p-6", theme === 'demonSlayer' ? "bg-gradient-to-br from-gray-700 to-gray-800 border-green-800/50" : "bg-gradient-to-br from-green-50 to-white border-green-200/50")}>
+                  <p className={cn("mb-6 text-sm leading-relaxed", theme === 'demonSlayer' ? "text-gray-300" : "text-gray-700")}>
+                    Infinite training with no time limit or score. Perfect your technique in a calm, focused environment.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
-                    {LEVELS.map(l => (
-                      <Button key={l.id} onClick={() => startGame(l, 'zen')} variant="outline" className="bg-white/50 hover:bg-white text-teal-700 border-teal-200">
+                    {currentLevels.map(l => (
+                      <DynamicButton 
+                        key={l.id} 
+                        currentTheme={currentTheme}
+                        onClick={() => startGame(l, 'zen')} 
+                        variant="outline" 
+                        className={cn(theme === 'demonSlayer' ? "bg-gray-700 hover:bg-gray-600 text-green-400 border-green-800" : "bg-green-100 hover:bg-green-200 text-green-600 border-green-300")}
+                      >
                         {l.name}
-                      </Button>
+                      </DynamicButton>
                     ))}
                   </div>
-                </Card>
+                </DynamicCard>
               </div>
             </section>
           </div>
@@ -502,22 +617,25 @@ export default function MathMasterApp() {
   
   if (gameState === 'playing' || gameState === 'learning' || gameState === 'zen') {
     const currentQ = questions[currentIndex];
-    const progress = ((currentIndex) / questions.length) * 100;
     const isLearning = gameState === 'learning';
     const isZen = gameState === 'zen';
+    const levelConfig = currentLevels.find(l => l.id === currentLevel.id);
+    const levelColor = levelConfig?.colorClass || currentTheme.ACCENT_TEAL;
+    const levelName = levelConfig?.name || 'Level';
+    const headerText = theme === 'demonSlayer' ? `${levelName} Form` : levelName;
 
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+      <div className={cn("min-h-screen flex flex-col items-center justify-center p-4", currentTheme.DARK_BG, currentTheme.DARK_TEXT)}>
         <div className="w-full max-w-md space-y-6">
           
           {/* Top Bar */}
           <div className="flex justify-between items-center">
-            <Button variant="ghost" size="sm" onClick={() => setGameState('menu')} className="text-slate-500">
-              <RotateCcw className="mr-2 h-4 w-4" /> Quit
-            </Button>
-            <div className="font-mono text-sm font-medium bg-white px-3 py-1 rounded-full border">
+            <DynamicButton currentTheme={currentTheme} variant="ghost" size="sm" onClick={() => { if(timerRef.current) clearInterval(timerRef.current); setGameState('menu'); }} className={currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-400" : "text-gray-600"}>
+              <RotateCcw className="mr-2 h-4 w-4" /> {theme === 'demonSlayer' ? 'Flee' : 'Exit'}
+            </DynamicButton>
+            <div className={cn("font-mono text-sm font-medium px-3 py-1 rounded-full border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-800 border-gray-700 text-gray-300" : "bg-gray-100 border-gray-300 text-gray-700")}>
               {isZen ? (
-                <span className="flex items-center gap-2"><Wind className="w-3 h-3" /> ∞</span>
+                <span className="flex items-center gap-2 text-green-400"><Wind className="w-3 h-3" /> Infinity</span>
               ) : (
                 `${currentIndex + 1} / ${questions.length}`
               )}
@@ -525,18 +643,18 @@ export default function MathMasterApp() {
           </div>
 
           {/* Game Card */}
-          <Card className="p-8 text-center relative overflow-hidden shadow-xl border-slate-200/60">
+          <DynamicCard currentTheme={currentTheme} className={cn("p-8 text-center relative overflow-hidden shadow-2xl", theme === 'demonSlayer' ? "shadow-red-900/20 border-red-800/50" : "shadow-indigo-300/20 border-indigo-300/50")}>
             {/* Timer (only for playing) */}
             {!isLearning && !isZen && (
               <div 
-                className={`absolute top-0 left-0 h-1.5 transition-all duration-1000 linear ${timeLeft < 5 ? 'bg-red-500' : 'bg-green-500'}`}
+                className={`absolute top-0 left-0 h-1.5 transition-all duration-1000 linear ${timeLeft < 5 ? currentTheme.ACCENT_BG_RED : currentTheme.ACCENT_BG_TEAL}`}
                 style={{ width: `${(timeLeft / currentLevel.timeLimit) * 100}%` }}
               />
             )}
 
             <div className="mb-8 mt-2">
-              <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">{currentLevel.name}</span>
-              <div className="text-6xl font-black text-slate-900 mt-4 tracking-tight flex justify-center items-baseline gap-4">
+              <span className={cn("text-xs font-bold tracking-wider uppercase", levelColor)}>{headerText}</span>
+              <div className="text-6xl font-black mt-4 tracking-tight flex justify-center items-baseline gap-4 text-gray-100">
                 {currentQ.text}
               </div>
             </div>
@@ -545,23 +663,25 @@ export default function MathMasterApp() {
             {isLearning && (
               <div className="min-h-[60px] mb-4 flex items-center justify-center">
                 {showHint ? (
-                  <div className="text-sm text-blue-600 bg-blue-50 px-4 py-2 rounded-lg animate-in fade-in slide-in-from-top-2">
+                  <div className={cn("text-sm px-4 py-2 rounded-lg animate-in fade-in slide-in-from-top-2", theme === 'demonSlayer' ? "text-teal-400 bg-teal-900/30 border border-teal-800" : "text-indigo-600 bg-indigo-100 border border-indigo-300")}>
                     <Lightbulb className="inline w-4 h-4 mr-1" /> {currentQ.hint}
                   </div>
                 ) : (
-                  <Button variant="ghost" size="sm" onClick={() => setShowHint(true)} className="text-slate-400 hover:text-blue-500">
+                  <DynamicButton currentTheme={currentTheme} variant="ghost" size="sm" onClick={() => setShowHint(true)} className={currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-400 hover:text-teal-400" : "text-gray-500 hover:text-indigo-600"}>
                     Need a hint?
-                  </Button>
+                  </DynamicButton>
                 )}
               </div>
             )}
 
             {/* Input Display */}
             <div className={cn(
-              "h-20 mb-8 rounded-2xl bg-slate-100 flex items-center justify-center border-2 transition-colors",
-              input ? "border-slate-300" : "border-transparent"
+              "h-20 mb-8 rounded-2xl flex items-center justify-center border-2 transition-colors",
+              theme === 'demonSlayer' ? 
+                (input ? "border-red-600 bg-gray-700" : "border-gray-700 bg-gray-800") :
+                (input ? "border-red-600 bg-gray-100" : "border-gray-300 bg-white")
             )}>
-              <span className={cn("text-5xl font-bold", input ? "text-slate-900" : "text-slate-300")}>
+              <span className={cn("text-5xl font-bold", input ? currentTheme.ACCENT_RED : currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-500" : "text-gray-400")}>
                 {input || '?'}
               </span>
             </div>
@@ -572,36 +692,38 @@ export default function MathMasterApp() {
                 <button
                   key={num}
                   onClick={() => handleKeypad(num)}
-                  className="h-14 rounded-xl bg-white border border-slate-200 shadow-sm hover:bg-slate-50 active:translate-y-0.5 text-xl font-bold text-slate-700 transition-all"
+                  className={cn("h-14 rounded-xl shadow-lg active:translate-y-0.5 text-xl font-bold transition-all", theme === 'demonSlayer' ? "bg-gray-700 border border-gray-600 hover:bg-gray-600 text-gray-100" : "bg-gray-200 border border-gray-300 hover:bg-gray-300 text-gray-900")}
                 >
                   {num}
                 </button>
               ))}
               <button 
                 onClick={() => setInput(prev => prev.slice(0, -1))}
-                className="h-14 rounded-xl bg-red-50 hover:bg-red-100 border border-red-100 text-red-600 flex items-center justify-center transition-colors"
+                className="h-14 rounded-xl bg-red-800 hover:bg-red-700 border border-red-900 text-white flex items-center justify-center transition-colors shadow-lg"
               >
                 ⌫
               </button>
               <button
                 onClick={() => handleKeypad(0)}
-                className="h-14 rounded-xl bg-white border border-slate-200 shadow-sm hover:bg-slate-50 active:translate-y-0.5 text-xl font-bold text-slate-700 transition-all"
+                className={cn("h-14 rounded-xl shadow-lg active:translate-y-0.5 text-xl font-bold transition-all", theme === 'demonSlayer' ? "bg-gray-700 border border-gray-600 hover:bg-gray-600 text-gray-100" : "bg-gray-200 border border-gray-300 hover:bg-gray-300 text-gray-900")}
               >
                 0
               </button>
-              <button
+              <DynamicButton
+                currentTheme={currentTheme}
                 onClick={() => isLearning ? checkLearningAnswer(input) : submitAnswer(input)}
                 disabled={!input}
-                className="h-14 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors shadow-lg shadow-slate-300"
+                className={cn("h-14 rounded-xl text-white flex items-center justify-center transition-colors shadow-lg", theme === 'demonSlayer' ? "shadow-teal-500/50" : "shadow-indigo-500/50")}
+                variant="themed"
               >
                 {isLearning ? <ArrowRight /> : <CheckCircle />}
-              </button>
+              </DynamicButton>
             </div>
             
-            <p className="text-xs text-slate-400 mt-6 hidden md:block">
-              Tip: You can use your keyboard number pad
+            <p className={cn("text-xs mt-6 hidden md:block", currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-500" : "text-gray-400")}>
+              {theme === 'demonSlayer' ? 'Total Concentration... use your keyboard number pad!' : 'Use your keyboard number pad!'}
             </p>
-          </Card>
+          </DynamicCard>
         </div>
       </div>
     );
@@ -614,60 +736,61 @@ export default function MathMasterApp() {
     const xpEarned = Math.round(stats.correct * 10 * currentLevel.xpMultiplier);
 
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className={cn("min-h-screen flex items-center justify-center p-4", currentTheme.DARK_BG, currentTheme.DARK_TEXT)}>
         <div className="max-w-xl w-full">
-          <Card className="overflow-hidden">
-            <div className="bg-slate-900 text-white p-8 text-center">
-              <h2 className="text-2xl font-bold mb-2 opacity-90">Session Complete</h2>
-              <div className="text-6xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400">
+          <DynamicCard currentTheme={currentTheme} className={cn("overflow-hidden", theme === 'demonSlayer' ? "border-teal-800/50" : "border-indigo-400/50")}>
+            <div className={cn("p-8 text-center", currentTheme.ACCENT_BG_RED)}>
+              <h2 className="text-2xl font-bold mb-2 opacity-90 text-white">{theme === 'demonSlayer' ? 'Mission Report' : 'Session Summary'}</h2>
+              <div className="text-6xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-b from-white to-red-300">
                 {stats.accuracy}%
               </div>
               <div className="flex justify-center gap-2 mt-4">
-                 <Badge variant="gold">+{xpEarned} XP</Badge>
-                 {stats.accuracy === 100 && <Badge variant="success">Perfect!</Badge>}
+                 <DynamicBadge currentTheme={currentTheme} variant="gold">+{xpEarned} XP</DynamicBadge>
+                 {stats.accuracy === 100 && <DynamicBadge currentTheme={currentTheme} variant="success">{theme === 'demonSlayer' ? 'Demon Slain!' : 'Perfect Score!'}</DynamicBadge>}
               </div>
             </div>
 
             <div className="p-8 space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-green-50 rounded-xl border border-green-100">
-                  <div className="text-green-700 text-sm font-medium">Correct</div>
-                  <div className="text-2xl font-bold text-green-800">{stats.correct}</div>
+                <div className={cn("p-4 rounded-xl border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 border-green-700" : "bg-green-50 border-green-300")}>
+                  <div className={cn("text-sm font-medium", theme === 'demonSlayer' ? "text-green-400" : "text-green-700")}>{theme === 'demonSlayer' ? 'Successful Strikes' : 'Correct Answers'}</div>
+                  <div className={cn("text-2xl font-bold", theme === 'demonSlayer' ? "text-green-400" : "text-green-600")}>{stats.correct}</div>
                 </div>
-                <div className="p-4 bg-red-50 rounded-xl border border-red-100">
-                  <div className="text-red-700 text-sm font-medium">Mistakes</div>
-                  <div className="text-2xl font-bold text-red-800">{stats.total - stats.correct}</div>
+                <div className={cn("p-4 rounded-xl border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 border-red-700" : "bg-red-50 border-red-300")}>
+                  <div className={cn("text-sm font-medium", theme === 'demonSlayer' ? "text-red-400" : "text-red-700")}>{theme === 'demonSlayer' ? 'Missed Strikes' : 'Incorrect Answers'}</div>
+                  <div className={cn("text-2xl font-bold", theme === 'demonSlayer' ? "text-red-400" : "text-red-600")}>{stats.total - stats.correct}</div>
                 </div>
               </div>
 
               {/* Weakness Analysis */}
               {stats.weaknesses.length > 0 ? (
-                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
-                  <h4 className="font-bold text-amber-900 mb-2 flex items-center gap-2">
-                    <Zap className="h-4 w-4" /> Focus Areas
+                <div className={cn("p-4 rounded-xl border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-800 border-red-700" : "bg-red-100 border-red-400")}>
+                  <h4 className={cn("font-bold mb-2 flex items-center gap-2", currentTheme.ACCENT_RED)}>
+                    <Zap className="h-4 w-4" /> {theme === 'demonSlayer' ? 'Weak Points Identified' : 'Areas for Improvement'}
                   </h4>
-                  <p className="text-sm text-amber-800 mb-4">
-                    You struggled with <strong>{stats.weaknesses.join(', ')}</strong>. 
+                  <p className={cn("text-sm mb-4", theme === 'demonSlayer' ? "text-gray-300" : "text-gray-700")}>
+                    {theme === 'demonSlayer' ? 'You need to train harder on' : 'Focus practice on'} <strong>{stats.weaknesses.join(', ')}</strong>. 
                   </p>
-                  <Button 
+                  <DynamicButton 
+                    currentTheme={currentTheme}
                     onClick={() => startGame(currentLevel, 'challenge', stats.weaknesses)}
-                    className="w-full bg-amber-500 hover:bg-amber-600 border-transparent text-white"
+                    className="w-full bg-red-700 hover:bg-red-800 border-transparent text-white"
                   >
-                    Practice These Items
-                  </Button>
+                    {theme === 'demonSlayer' ? 'Rethink Strategy' : 'Try Again'}
+                  </DynamicButton>
                 </div>
               ) : (
-                <div className="text-center py-4 text-slate-500">
-                  <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-400" />
-                  <p>Great job! You've mastered this set.</p>
+                <div className={cn("text-center py-4", theme === 'demonSlayer' ? "text-gray-500" : "text-gray-600")}>
+                  <Trophy className="h-8 w-8 mx-auto mb-2 text-amber-300" />
+                  <p>{theme === 'demonSlayer' ? 'Masterful! No weak points found on this mission.' : 'Excellent performance! Everything looks sharp.'}</p>
                 </div>
               )}
 
-              <Button onClick={() => setGameState('menu')} variant="outline" className="w-full">
-                Return to Menu
-              </Button>
+              <DynamicButton currentTheme={currentTheme} onClick={() => setGameState('menu')} variant="outline" className="w-full">
+                {theme === 'demonSlayer' ? 'Return to Headquarters' : 'Back to Main Menu'}
+              </DynamicButton>
             </div>
-          </Card>
+          </DynamicCard>
         </div>
       </div>
     );
