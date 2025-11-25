@@ -216,7 +216,7 @@ const calculateNextLevelXp = (level) => Math.pow(level, 2) * 100;
 export default function MathMasterApp() {
   const [gameState, setGameState] = useState('menu'); // menu, playing, learning, report, zen
   const [gameMode, setGameMode] = useState('challenge'); // challenge, learning, zen
-  const [theme, setTheme] = useState('demonSlayer');
+  const [theme, setTheme] = useState('normal');
   
   const [profile, setProfile] = useState({
     xp: 0,
