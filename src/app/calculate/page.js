@@ -1,12 +1,10 @@
 'use client'
-
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Play, RotateCcw, Award, Brain, Calculator, ArrowRight, 
   CheckCircle, XCircle, Activity, Zap, Star, Trophy, 
   BookOpen, Lightbulb, Settings, ChevronRight, Hash, Wind, Zap as Lightning,
-  Moon, Sun
+  Moon, Sun, TrendingUp, Clock, Target
 } from 'lucide-react';
 
 // --- OPERATION CONSTANTS ---
@@ -31,7 +29,7 @@ const BADGES = [
 
 // --- THEME & LEVEL CONFIGURATIONS ---
 
-// 1. Demon Slayer Configuration
+// 1. Demon Slayer Configuration (Dark Mode)
 const DEMON_SLAYER_THEME = {
   DARK_BG: 'bg-gray-900',
   DARK_TEXT: 'text-gray-100',
@@ -52,25 +50,25 @@ const DEMON_SLAYER_LEVELS = [
   { id: 5, name: "Hashira", description: "Sun Breathing: BODMAS & Logic Chains (Pillar Rank)", ops: [OPERATIONS.BODMAS], range: [5, 20], terms: 3, timeLimit: 45, xpMultiplier: 5, colorClass: "text-amber-300" }
 ];
 
-// 2. Normal Configuration
+// 2. Normal Configuration (Dark Mode)
 const NORMAL_THEME = {
-  DARK_BG: 'bg-gray-50',
-  DARK_TEXT: 'text-gray-900',
-  ACCENT_TEAL: 'text-indigo-600',
-  ACCENT_RED: 'text-red-600',
+  DARK_BG: 'bg-gray-800', // Dark
+  DARK_TEXT: 'text-gray-100', // Light
+  ACCENT_TEAL: 'text-indigo-400', // Adjusted accent color for better visibility on dark bg
+  ACCENT_RED: 'text-red-500',
   ACCENT_BG_RED: 'bg-red-600',
   ACCENT_BG_TEAL: 'bg-indigo-600',
   ACCENT_RING_TEAL: 'focus-visible:ring-indigo-500',
-  BUTTON_PRIMARY: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-500/50",
-  CARD_DEFAULT: "rounded-xl border border-gray-300 bg-white text-gray-900 shadow-xl",
+  BUTTON_PRIMARY: "bg-indigo-700 text-white hover:bg-indigo-600 shadow-lg shadow-indigo-500/50",
+  CARD_DEFAULT: "rounded-xl border border-gray-700 bg-gray-900 text-gray-100 shadow-2xl",
 };
 
 const NORMAL_LEVELS = [
-  { id: 1, name: "Easy", description: "Standard: Addition & Subtraction (1-10)", ops: [OPERATIONS.ADD, OPERATIONS.SUB], range: [1, 10], terms: 2, timeLimit: 15, xpMultiplier: 1, colorClass: "text-green-500" },
-  { id: 2, name: "Medium", description: "Standard: Intro to Mult & Div (2-12)", ops: [OPERATIONS.MULT, OPERATIONS.DIV], range: [2, 12], terms: 2, timeLimit: 20, xpMultiplier: 1.5, colorClass: "text-blue-500" },
-  { id: 3, name: "Hard", description: "Advanced: Mixed Ops & Larger Numbers (10-50)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [10, 50], terms: 2, timeLimit: 25, xpMultiplier: 2, colorClass: "text-purple-500" },
-  { id: 4, name: "Expert", description: "Expert: Complex Mixed Operations (20-100)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [20, 100], terms: 2, timeLimit: 30, xpMultiplier: 3, colorClass: "text-orange-500" },
-  { id: 5, name: "Master", description: "Master: BODMAS & Logic Chains", ops: [OPERATIONS.BODMAS], range: [5, 20], terms: 3, timeLimit: 45, xpMultiplier: 5, colorClass: "text-red-500" }
+  { id: 1, name: "Easy", description: "Standard: Addition & Subtraction (1-10)", ops: [OPERATIONS.ADD, OPERATIONS.SUB], range: [1, 10], terms: 2, timeLimit: 15, xpMultiplier: 1, colorClass: "text-green-400" },
+  { id: 2, name: "Medium", description: "Standard: Intro to Mult & Div (2-12)", ops: [OPERATIONS.MULT, OPERATIONS.DIV], range: [2, 12], terms: 2, timeLimit: 20, xpMultiplier: 1.5, colorClass: "text-blue-400" },
+  { id: 3, name: "Hard", description: "Advanced: Mixed Ops & Larger Numbers (10-50)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [10, 50], terms: 2, timeLimit: 25, xpMultiplier: 2, colorClass: "text-purple-400" },
+  { id: 4, name: "Expert", description: "Expert: Complex Mixed Operations (20-100)", ops: [OPERATIONS.ADD, OPERATIONS.SUB, OPERATIONS.MULT, OPERATIONS.DIV], range: [20, 100], terms: 2, timeLimit: 30, xpMultiplier: 3, colorClass: "text-orange-400" },
+  { id: 5, name: "Master", description: "Master: BODMAS & Logic Chains", ops: [OPERATIONS.BODMAS], range: [5, 20], terms: 3, timeLimit: 45, xpMultiplier: 5, colorClass: "text-red-400" }
 ];
 
 
@@ -78,14 +76,13 @@ const NORMAL_LEVELS = [
 
 const cn = (...classes) => classes.filter(Boolean).join(' ');
 
-// Button, Card, and Badge components now accept 'currentTheme' via props or context (using props for simplicity here)
-
-const DynamicButton = ({ children, variant = "default", size = "default", className, currentTheme, ...props }) => {
+// Dynamic components simplified for dark mode only
+const DynamicButton = ({ children, variant = "default", size = "default", className, currentTheme, theme, ...props }) => {
   const variants = {
     default: currentTheme.BUTTON_PRIMARY,
-    outline: cn("border border-gray-700", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-800 hover:bg-gray-700 text-gray-100" : "bg-white hover:bg-gray-100 text-gray-800"),
-    ghost: cn("hover:bg-gray-700", currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-400" : "text-gray-600 hover:bg-gray-100"),
-    secondary: cn(currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 text-gray-100 hover:bg-gray-600" : "bg-gray-200 text-gray-900 hover:bg-gray-300"),
+    outline: cn("border", theme === 'demonSlayer' ? "border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-100" : "border-indigo-500 bg-gray-900 hover:bg-gray-800 text-indigo-400"),
+    ghost: cn("hover:bg-gray-700", theme === 'demonSlayer' ? "text-gray-400" : "text-gray-300 hover:bg-gray-800"),
+    secondary: "bg-gray-700 text-gray-100 hover:bg-gray-600",
     destructive: "bg-red-700 text-white hover:bg-red-800",
     themed: cn(currentTheme.ACCENT_BG_TEAL, "text-white hover:opacity-90"),
   };
@@ -121,8 +118,8 @@ const DynamicCard = ({ children, className, currentTheme, ...props }) => (
 const DynamicBadge = ({ children, variant = "default", currentTheme }) => {
   const variants = {
     default: cn(currentTheme.DARK_BG, "border-transparent text-gray-50"),
-    secondary: cn(currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 text-gray-100" : "bg-gray-200 text-gray-900"),
-    outline: cn(currentTheme.DARK_TEXT, currentTheme.DARK_BG === 'bg-gray-900' ? "border-gray-700" : "border-gray-300"),
+    secondary: cn("bg-gray-700 text-gray-100"),
+    outline: cn(currentTheme.DARK_TEXT, "border-gray-700"),
     success: "border-transparent bg-green-600 text-white",
     gold: "border-transparent bg-amber-500 text-gray-900",
   };
@@ -216,7 +213,7 @@ const calculateNextLevelXp = (level) => Math.pow(level, 2) * 100;
 export default function MathMasterApp() {
   const [gameState, setGameState] = useState('menu'); // menu, playing, learning, report, zen
   const [gameMode, setGameMode] = useState('challenge'); // challenge, learning, zen
-  const [theme, setTheme] = useState('normal');
+  const [theme, setTheme] = useState('demonSlayer');
   
   const [profile, setProfile] = useState({
     xp: 0,
@@ -302,7 +299,7 @@ export default function MathMasterApp() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, input, questions, currentIndex, currentLevels]); // Added currentLevels as dependency for submit/check functions
+  }, [gameState, input, questions, currentIndex, currentLevels]);
 
   // --- GAME LOGIC ---
 
@@ -355,12 +352,16 @@ export default function MathMasterApp() {
     const numVal = parseInt(val, 10);
     const isCorrect = !isTimeout && numVal === currentQ.answer;
     
+    // Set timeSpent to full time limit on timeout, or calculate spent time if answered
+    const timeSpent = isTimeout ? currentLevel.timeLimit : currentLevel.timeLimit - timeLeft;
+    
     // Record history
     const historyEntry = {
       ...currentQ,
       userAnswer: isTimeout ? 'Timeout' : numVal,
       isCorrect: isCorrect,
-      timeSpent: currentLevel.timeLimit - timeLeft
+      // TimeSpent is now guaranteed to be a number (full limit for timeout, or actual time)
+      timeSpent: timeSpent 
     };
 
     const newHistory = [...history, historyEntry];
@@ -426,8 +427,11 @@ export default function MathMasterApp() {
     newStats.totalGames += 1;
     if (accuracy === 100) newStats.perfectSessions += 1;
     
-    const gameFastest = Math.min(...finalHistory.filter(h => h.isCorrect).map(h => h.timeSpent));
-    if (gameFastest < newStats.fastestAnswer) newStats.fastestAnswer = gameFastest;
+    // Find fastest correct, non-timeout answer
+    const correctTimes = finalHistory.filter(h => h.isCorrect).map(h => h.timeSpent);
+    const gameFastest = correctTimes.length > 0 ? Math.min(...correctTimes) : 0;
+
+    if (gameFastest > 0 && gameFastest < newStats.fastestAnswer) newStats.fastestAnswer = gameFastest;
     
     const hour = new Date().getHours();
     if (hour >= 22 || hour <= 4) newStats.lateNightGames += 1;
@@ -474,17 +478,18 @@ export default function MathMasterApp() {
           <div className="flex justify-end">
             <DynamicButton 
               currentTheme={currentTheme}
+              theme={theme}
               variant="outline" 
               size="sm" 
               onClick={toggleTheme} 
-              className={cn("border-2", theme === 'demonSlayer' ? "border-red-500" : "border-indigo-500")}
+              className={cn("border-2", theme === 'demonSlayer' ? "border-red-500 text-red-400" : "border-indigo-500 text-indigo-400")}
             >
               {theme === 'demonSlayer' ? (
-                <span className="flex items-center gap-2 text-red-500">
+                <span className="flex items-center gap-2">
                   <Moon className="w-4 h-4" /> Switch to Normal Mode
                 </span>
               ) : (
-                <span className="flex items-center gap-2 text-indigo-500">
+                <span className="flex items-center gap-2">
                   <Sun className="w-4 h-4" /> Switch to Demon Slayer
                 </span>
               )}
@@ -496,7 +501,7 @@ export default function MathMasterApp() {
           {/* Header Profile Section */}
           <DynamicCard currentTheme={currentTheme} className={cn("flex flex-col md:flex-row gap-6 items-center justify-between p-6 shadow-xl", theme === 'demonSlayer' ? "border-red-900/50" : "border-indigo-900/50")}>
             <div className="flex items-center gap-4">
-              <div className={cn("h-16 w-16 rounded-full flex items-center justify-center font-bold text-2xl shadow-lg", currentTheme.ACCENT_BG_TEAL, currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-900 shadow-teal-500/30" : "text-white shadow-indigo-500/30")}>
+              <div className={cn("h-16 w-16 rounded-full flex items-center justify-center font-bold text-2xl shadow-lg", currentTheme.ACCENT_BG_TEAL, "text-gray-900 shadow-teal-500/30")}>
                 {profile.level}
               </div>
               <div>
@@ -514,7 +519,7 @@ export default function MathMasterApp() {
               {profile.badges.map(bid => {
                 const b = BADGES.find(x => x.id === bid);
                 return (
-                  <div key={bid} className={cn("h-10 w-10 rounded-full flex items-center justify-center text-xl shadow-sm border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 border-gray-600" : "bg-gray-100 border-gray-300")} title={b.name}>
+                  <div key={bid} className={cn("h-10 w-10 rounded-full flex items-center justify-center text-xl shadow-sm border", "bg-gray-700 border-gray-600")} title={b.name}>
                     {b.icon}
                   </div>
                 );
@@ -537,7 +542,7 @@ export default function MathMasterApp() {
                         <h4 className={cn("font-bold", level.colorClass)}>{level.name}</h4>
                         <p className="text-sm text-gray-400">{level.description}</p>
                       </div>
-                      <DynamicButton currentTheme={currentTheme} variant="ghost" size="icon" className={cn("group-hover:translate-x-1 transition-transform", currentTheme.ACCENT_TEAL)}>
+                      <DynamicButton currentTheme={currentTheme} theme={theme} variant="ghost" size="icon" className={cn("group-hover:translate-x-1 transition-transform", currentTheme.ACCENT_TEAL)}>
                         <ChevronRight />
                       </DynamicButton>
                     </div>
@@ -560,8 +565,8 @@ export default function MathMasterApp() {
                   <BookOpen className={currentTheme.ACCENT_TEAL} />
                   <h3 className="text-lg font-bold">{learningClass}</h3>
                 </div>
-                <DynamicCard currentTheme={currentTheme} className={cn("p-6", theme === 'demonSlayer' ? "bg-gradient-to-br from-gray-700 to-gray-800 border-teal-800/50" : "bg-gradient-to-br from-indigo-50 to-white border-indigo-200/50")}>
-                  <p className={cn("mb-6 text-sm leading-relaxed", theme === 'demonSlayer' ? "text-gray-300" : "text-gray-700")}>
+                <DynamicCard currentTheme={currentTheme} className={cn("p-6", theme === 'demonSlayer' ? "bg-gray-800 border-teal-800/50" : "bg-gray-800 border-indigo-800/50")}>
+                  <p className={cn("mb-6 text-sm leading-relaxed", "text-gray-300")}>
                     Practice the fundamentals without the pressure of a timer. Master each form step-by-step.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
@@ -569,9 +574,10 @@ export default function MathMasterApp() {
                       <DynamicButton 
                         key={l.id} 
                         currentTheme={currentTheme}
+                        theme={theme}
                         onClick={() => startGame(l, 'learning')} 
                         variant="outline" 
-                        className={cn(theme === 'demonSlayer' ? "bg-gray-700 hover:bg-gray-600 text-teal-400 border-teal-800" : "bg-indigo-100 hover:bg-indigo-200 text-indigo-600 border-indigo-300")}
+                        className={cn(theme === 'demonSlayer' ? "bg-gray-700 hover:bg-gray-600 text-teal-400 border-teal-800" : "bg-gray-700 hover:bg-gray-600 text-indigo-400 border-indigo-800")}
                       >
                         {l.name}
                       </DynamicButton>
@@ -586,8 +592,8 @@ export default function MathMasterApp() {
                   <Wind className="text-green-400" />
                   <h3 className="text-lg font-bold">{zenClass}</h3>
                 </div>
-                <DynamicCard currentTheme={currentTheme} className={cn("p-6", theme === 'demonSlayer' ? "bg-gradient-to-br from-gray-700 to-gray-800 border-green-800/50" : "bg-gradient-to-br from-green-50 to-white border-green-200/50")}>
-                  <p className={cn("mb-6 text-sm leading-relaxed", theme === 'demonSlayer' ? "text-gray-300" : "text-gray-700")}>
+                <DynamicCard currentTheme={currentTheme} className={cn("p-6", theme === 'demonSlayer' ? "bg-gray-800 border-green-800/50" : "bg-gray-800 border-green-800/50")}>
+                  <p className={cn("mb-6 text-sm leading-relaxed", "text-gray-300")}>
                     Infinite training with no time limit or score. Perfect your technique in a calm, focused environment.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
@@ -595,9 +601,10 @@ export default function MathMasterApp() {
                       <DynamicButton 
                         key={l.id} 
                         currentTheme={currentTheme}
+                        theme={theme}
                         onClick={() => startGame(l, 'zen')} 
                         variant="outline" 
-                        className={cn(theme === 'demonSlayer' ? "bg-gray-700 hover:bg-gray-600 text-green-400 border-green-800" : "bg-green-100 hover:bg-green-200 text-green-600 border-green-300")}
+                        className={cn("bg-gray-700 hover:bg-gray-600 text-green-400 border-green-800")}
                       >
                         {l.name}
                       </DynamicButton>
@@ -607,6 +614,35 @@ export default function MathMasterApp() {
               </div>
             </section>
           </div>
+          
+          {/* Project Description Section */}
+          <section className="pt-8">
+            <DynamicCard currentTheme={currentTheme} className="p-6">
+              <h3 className="text-xl font-bold flex items-center gap-2 mb-3">
+                <Activity className={currentTheme.ACCENT_TEAL} /> Why Mental Math Matters
+              </h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Mental arithmetic is more than just speed—it’s about enhancing core cognitive skills. Regularly challenging yourself to calculate without external tools strengthens pattern recognition, improves concentration, and boosts overall logical reasoning. These skills are invaluable not just in academic math, but in everyday decision-making, finance, and problem-solving.
+              </p>
+              <div className="grid grid-cols-3 gap-4 text-center mt-6">
+                  <div className="space-y-1">
+                      <TrendingUp className={`${currentTheme.ACCENT_RED} mx-auto`} size={24} />
+                      <p className="text-xs font-semibold">Cognitive Boost</p>
+                  </div>
+                  <div className="space-y-1">
+                      <Clock className={`${currentTheme.ACCENT_RED} mx-auto`} size={24} />
+                      <p className="text-xs font-semibold">Speed Training</p>
+                  </div>
+                  <div className="space-y-1">
+                      <Target className={`${currentTheme.ACCENT_RED} mx-auto`} size={24} />
+                      <p className="text-xs font-semibold">Focused Practice</p>
+                  </div>
+              </div>
+              <p className="text-sm mt-4 italic text-gray-500">
+                MathMaster is designed to make this training engaging, using gamification (XP, ranks, themes) to turn practice into a focused, rewarding challenge. Start your training today and master the forms of mental calculation!
+              </p>
+            </DynamicCard>
+          </section>
 
         </div>
       </div>
@@ -630,10 +666,17 @@ export default function MathMasterApp() {
           
           {/* Top Bar */}
           <div className="flex justify-between items-center">
-            <DynamicButton currentTheme={currentTheme} variant="ghost" size="sm" onClick={() => { if(timerRef.current) clearInterval(timerRef.current); setGameState('menu'); }} className={currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-400" : "text-gray-600"}>
+            <DynamicButton 
+              currentTheme={currentTheme} 
+              theme={theme}
+              variant="ghost" 
+              size="sm" 
+              onClick={() => { if(timerRef.current) clearInterval(timerRef.current); setGameState('menu'); }} 
+              className="text-gray-400"
+            >
               <RotateCcw className="mr-2 h-4 w-4" /> {theme === 'demonSlayer' ? 'Flee' : 'Exit'}
             </DynamicButton>
-            <div className={cn("font-mono text-sm font-medium px-3 py-1 rounded-full border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-800 border-gray-700 text-gray-300" : "bg-gray-100 border-gray-300 text-gray-700")}>
+            <div className={cn("font-mono text-sm font-medium px-3 py-1 rounded-full border", "bg-gray-800 border-gray-700 text-gray-300")}>
               {isZen ? (
                 <span className="flex items-center gap-2 text-green-400"><Wind className="w-3 h-3" /> Infinity</span>
               ) : (
@@ -643,7 +686,7 @@ export default function MathMasterApp() {
           </div>
 
           {/* Game Card */}
-          <DynamicCard currentTheme={currentTheme} className={cn("p-8 text-center relative overflow-hidden shadow-2xl", theme === 'demonSlayer' ? "shadow-red-900/20 border-red-800/50" : "shadow-indigo-300/20 border-indigo-300/50")}>
+          <DynamicCard currentTheme={currentTheme} className={cn("p-8 text-center relative overflow-hidden shadow-2xl", theme === 'demonSlayer' ? "shadow-red-900/20 border-red-800/50" : "shadow-indigo-900/20 border-indigo-400/50")}>
             {/* Timer (only for playing) */}
             {!isLearning && !isZen && (
               <div 
@@ -663,11 +706,11 @@ export default function MathMasterApp() {
             {isLearning && (
               <div className="min-h-[60px] mb-4 flex items-center justify-center">
                 {showHint ? (
-                  <div className={cn("text-sm px-4 py-2 rounded-lg animate-in fade-in slide-in-from-top-2", theme === 'demonSlayer' ? "text-teal-400 bg-teal-900/30 border border-teal-800" : "text-indigo-600 bg-indigo-100 border border-indigo-300")}>
+                  <div className={cn("text-sm px-4 py-2 rounded-lg animate-in fade-in slide-in-from-top-2", theme === 'demonSlayer' ? "text-teal-400 bg-teal-900/30 border border-teal-800" : "text-indigo-400 bg-indigo-900/30 border border-indigo-800")}>
                     <Lightbulb className="inline w-4 h-4 mr-1" /> {currentQ.hint}
                   </div>
                 ) : (
-                  <DynamicButton currentTheme={currentTheme} variant="ghost" size="sm" onClick={() => setShowHint(true)} className={currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-400 hover:text-teal-400" : "text-gray-500 hover:text-indigo-600"}>
+                  <DynamicButton currentTheme={currentTheme} theme={theme} variant="ghost" size="sm" onClick={() => setShowHint(true)} className={theme === 'demonSlayer' ? "text-gray-400 hover:text-teal-400" : "text-gray-400 hover:text-indigo-400"}>
                     Need a hint?
                   </DynamicButton>
                 )}
@@ -679,9 +722,9 @@ export default function MathMasterApp() {
               "h-20 mb-8 rounded-2xl flex items-center justify-center border-2 transition-colors",
               theme === 'demonSlayer' ? 
                 (input ? "border-red-600 bg-gray-700" : "border-gray-700 bg-gray-800") :
-                (input ? "border-red-600 bg-gray-100" : "border-gray-300 bg-white")
+                (input ? "border-red-600 bg-gray-700" : "border-gray-700 bg-gray-800")
             )}>
-              <span className={cn("text-5xl font-bold", input ? currentTheme.ACCENT_RED : currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-500" : "text-gray-400")}>
+              <span className={cn("text-5xl font-bold", input ? currentTheme.ACCENT_RED : "text-gray-500")}>
                 {input || '?'}
               </span>
             </div>
@@ -692,7 +735,7 @@ export default function MathMasterApp() {
                 <button
                   key={num}
                   onClick={() => handleKeypad(num)}
-                  className={cn("h-14 rounded-xl shadow-lg active:translate-y-0.5 text-xl font-bold transition-all", theme === 'demonSlayer' ? "bg-gray-700 border border-gray-600 hover:bg-gray-600 text-gray-100" : "bg-gray-200 border border-gray-300 hover:bg-gray-300 text-gray-900")}
+                  className={cn("h-14 rounded-xl shadow-lg active:translate-y-0.5 text-xl font-bold transition-all", "bg-gray-700 border border-gray-600 hover:bg-gray-600 text-gray-100")}
                 >
                   {num}
                 </button>
@@ -705,12 +748,13 @@ export default function MathMasterApp() {
               </button>
               <button
                 onClick={() => handleKeypad(0)}
-                className={cn("h-14 rounded-xl shadow-lg active:translate-y-0.5 text-xl font-bold transition-all", theme === 'demonSlayer' ? "bg-gray-700 border border-gray-600 hover:bg-gray-600 text-gray-100" : "bg-gray-200 border border-gray-300 hover:bg-gray-300 text-gray-900")}
+                className={cn("h-14 rounded-xl shadow-lg active:translate-y-0.5 text-xl font-bold transition-all", "bg-gray-700 border border-gray-600 hover:bg-gray-600 text-gray-100")}
               >
                 0
               </button>
               <DynamicButton
                 currentTheme={currentTheme}
+                theme={theme}
                 onClick={() => isLearning ? checkLearningAnswer(input) : submitAnswer(input)}
                 disabled={!input}
                 className={cn("h-14 rounded-xl text-white flex items-center justify-center transition-colors shadow-lg", theme === 'demonSlayer' ? "shadow-teal-500/50" : "shadow-indigo-500/50")}
@@ -720,7 +764,7 @@ export default function MathMasterApp() {
               </DynamicButton>
             </div>
             
-            <p className={cn("text-xs mt-6 hidden md:block", currentTheme.DARK_BG === 'bg-gray-900' ? "text-gray-500" : "text-gray-400")}>
+            <p className={cn("text-xs mt-6 hidden md:block", "text-gray-500")}>
               {theme === 'demonSlayer' ? 'Total Concentration... use your keyboard number pad!' : 'Use your keyboard number pad!'}
             </p>
           </DynamicCard>
@@ -752,27 +796,28 @@ export default function MathMasterApp() {
 
             <div className="p-8 space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className={cn("p-4 rounded-xl border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 border-green-700" : "bg-green-50 border-green-300")}>
-                  <div className={cn("text-sm font-medium", theme === 'demonSlayer' ? "text-green-400" : "text-green-700")}>{theme === 'demonSlayer' ? 'Successful Strikes' : 'Correct Answers'}</div>
-                  <div className={cn("text-2xl font-bold", theme === 'demonSlayer' ? "text-green-400" : "text-green-600")}>{stats.correct}</div>
+                <div className={cn("p-4 rounded-xl border", "bg-gray-700 border-green-700")}>
+                  <div className={cn("text-sm font-medium", "text-green-400")}>{theme === 'demonSlayer' ? 'Successful Strikes' : 'Correct Answers'}</div>
+                  <div className={cn("text-2xl font-bold", "text-green-400")}>{stats.correct}</div>
                 </div>
-                <div className={cn("p-4 rounded-xl border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-700 border-red-700" : "bg-red-50 border-red-300")}>
-                  <div className={cn("text-sm font-medium", theme === 'demonSlayer' ? "text-red-400" : "text-red-700")}>{theme === 'demonSlayer' ? 'Missed Strikes' : 'Incorrect Answers'}</div>
-                  <div className={cn("text-2xl font-bold", theme === 'demonSlayer' ? "text-red-400" : "text-red-600")}>{stats.total - stats.correct}</div>
+                <div className={cn("p-4 rounded-xl border", "bg-gray-700 border-red-700")}>
+                  <div className={cn("text-sm font-medium", "text-red-400")}>{theme === 'demonSlayer' ? 'Missed Strikes' : 'Incorrect Answers'}</div>
+                  <div className={cn("text-2xl font-bold", "text-red-400")}>{stats.total - stats.correct}</div>
                 </div>
               </div>
 
               {/* Weakness Analysis */}
               {stats.weaknesses.length > 0 ? (
-                <div className={cn("p-4 rounded-xl border", currentTheme.DARK_BG === 'bg-gray-900' ? "bg-gray-800 border-red-700" : "bg-red-100 border-red-400")}>
+                <div className={cn("p-4 rounded-xl border", "bg-gray-800 border-red-700")}>
                   <h4 className={cn("font-bold mb-2 flex items-center gap-2", currentTheme.ACCENT_RED)}>
                     <Zap className="h-4 w-4" /> {theme === 'demonSlayer' ? 'Weak Points Identified' : 'Areas for Improvement'}
                   </h4>
-                  <p className={cn("text-sm mb-4", theme === 'demonSlayer' ? "text-gray-300" : "text-gray-700")}>
+                  <p className={cn("text-sm mb-4", "text-gray-300")}>
                     {theme === 'demonSlayer' ? 'You need to train harder on' : 'Focus practice on'} <strong>{stats.weaknesses.join(', ')}</strong>. 
                   </p>
                   <DynamicButton 
                     currentTheme={currentTheme}
+                    theme={theme}
                     onClick={() => startGame(currentLevel, 'challenge', stats.weaknesses)}
                     className="w-full bg-red-700 hover:bg-red-800 border-transparent text-white"
                   >
@@ -780,13 +825,13 @@ export default function MathMasterApp() {
                   </DynamicButton>
                 </div>
               ) : (
-                <div className={cn("text-center py-4", theme === 'demonSlayer' ? "text-gray-500" : "text-gray-600")}>
+                <div className={cn("text-center py-4", "text-gray-500")}>
                   <Trophy className="h-8 w-8 mx-auto mb-2 text-amber-300" />
                   <p>{theme === 'demonSlayer' ? 'Masterful! No weak points found on this mission.' : 'Excellent performance! Everything looks sharp.'}</p>
                 </div>
               )}
 
-              <DynamicButton currentTheme={currentTheme} onClick={() => setGameState('menu')} variant="outline" className="w-full">
+              <DynamicButton currentTheme={currentTheme} theme={theme} onClick={() => setGameState('menu')} variant="outline" className="w-full">
                 {theme === 'demonSlayer' ? 'Return to Headquarters' : 'Back to Main Menu'}
               </DynamicButton>
             </div>
