@@ -136,73 +136,101 @@ const DynamicBadge = ({ children, variant = "default", currentTheme }) => {
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 const generateQuestion = (levelConfig, forcedOp = null) => {
-  const op = forcedOp || levelConfig.ops[getRandomInt(0, levelConfig.ops.length - 1)];
-  const { range } = levelConfig;
-
-  let num1, num2, num3, question, answer, hint;
-
-  switch (op) {
-    case OPERATIONS.ADD:
-      num1 = getRandomInt(range[0], range[1]);
-      num2 = getRandomInt(range[0], range[1]);
-      question = `${num1} + ${num2}`;
-      answer = num1 + num2;
-      hint = `Start with ${Math.max(num1, num2)} and count up by ${Math.min(num1, num2)}.`;
-      break;
-
-    case OPERATIONS.SUB:
-      num1 = getRandomInt(range[0], range[1]);
-      num2 = getRandomInt(range[0], num1); 
-      question = `${num1} - ${num2}`;
-      answer = num1 - num2;
-      hint = `Think: What number plus ${num2} equals ${num1}?`;
-      break;
-
-    case OPERATIONS.MULT:
-      num1 = getRandomInt(Math.max(2, range[0] / 2), Math.min(12, range[1])); 
-      num2 = getRandomInt(2, 12);
-      question = `${num1} × ${num2}`;
-      answer = num1 * num2;
-      hint = `This is ${num1} added together ${num2} times.`;
-      break;
-
-    case OPERATIONS.DIV:
-      num2 = getRandomInt(2, 12);
-      answer = getRandomInt(2, 12);
-      num1 = num2 * answer;
-      question = `${num1} ÷ ${num2}`;
-      hint = `Think: How many times does ${num2} fit into ${num1}?`;
-      break;
-
-    case OPERATIONS.BODMAS:
-      num1 = getRandomInt(2, 10);
-      num2 = getRandomInt(2, 10);
-      num3 = getRandomInt(2, 5);
-      if (Math.random() > 0.5) {
-        question = `${num1} + ${num2} × ${num3}`;
-        answer = num1 + (num2 * num3);
-        hint = `Multiply ${num2} × ${num3} first, then add ${num1}.`;
-      } else {
-        question = `(${num1} + ${num2}) × ${num3}`;
-        answer = (num1 + num2) * num3;
-        hint = `Do the brackets (${num1} + ${num2}) first, then multiply by ${num3}.`;
-      }
-      break;
-      
-    default:
-      return generateQuestion(levelConfig, OPERATIONS.ADD);
+  // FIX: Validate input parameters
+  if (!levelConfig || !levelConfig.ops || !levelConfig.range || !Array.isArray(levelConfig.ops)) {
+    console.error('Invalid level config for question generation:', levelConfig);
+    return null;
   }
 
-  return {
-    id: Date.now() + Math.random(),
-    text: question,
-    answer: answer,
-    type: op,
-    hint: hint,
-    userAnswer: null,
-    isCorrect: false,
-    timeSpent: 0
-  };
+  try {
+    const op = forcedOp || levelConfig.ops[getRandomInt(0, levelConfig.ops.length - 1)];
+    const { range } = levelConfig;
+
+    // FIX: Validate range
+    if (!Array.isArray(range) || range.length < 2 || range[0] >= range[1]) {
+      console.error('Invalid range for question generation:', range);
+      return null;
+    }
+
+    let num1, num2, num3, question, answer, hint;
+
+    switch (op) {
+      case OPERATIONS.ADD:
+        num1 = getRandomInt(range[0], range[1]);
+        num2 = getRandomInt(range[0], range[1]);
+        question = `${num1} + ${num2}`;
+        answer = num1 + num2;
+        hint = `Start with ${Math.max(num1, num2)} and count up by ${Math.min(num1, num2)}.`;
+        break;
+
+      case OPERATIONS.SUB:
+        num1 = getRandomInt(range[0], range[1]);
+        num2 = getRandomInt(range[0], num1); 
+        question = `${num1} - ${num2}`;
+        answer = num1 - num2;
+        hint = `Think: What number plus ${num2} equals ${num1}?`;
+        break;
+
+      case OPERATIONS.MULT:
+        num1 = getRandomInt(Math.max(2, Math.floor(range[0] / 2)), Math.min(12, range[1])); 
+        num2 = getRandomInt(2, 12);
+        question = `${num1} × ${num2}`;
+        answer = num1 * num2;
+        hint = `This is ${num1} added together ${num2} times.`;
+        break;
+
+      case OPERATIONS.DIV:
+        num2 = getRandomInt(2, 12);
+        answer = getRandomInt(2, 12);
+        num1 = num2 * answer;
+        question = `${num1} ÷ ${num2}`;
+        hint = `Think: How many times does ${num2} fit into ${num1}?`;
+        break;
+
+      case OPERATIONS.BODMAS:
+        num1 = getRandomInt(2, 10);
+        num2 = getRandomInt(2, 10);
+        num3 = getRandomInt(2, 5);
+        if (Math.random() > 0.5) {
+          question = `${num1} + ${num2} × ${num3}`;
+          answer = num1 + (num2 * num3);
+          hint = `Multiply ${num2} × ${num3} first, then add ${num1}.`;
+        } else {
+          question = `(${num1} + ${num2}) × ${num3}`;
+          answer = (num1 + num2) * num3;
+          hint = `Do the brackets (${num1} + ${num2}) first, then multiply by ${num3}.`;
+        }
+        break;
+        
+      default:
+        console.warn('Unknown operation:', op, 'falling back to addition');
+        return generateQuestion(levelConfig, OPERATIONS.ADD);
+    }
+
+    // FIX: Validate the generated question
+    const questionObj = {
+      id: Date.now() + Math.random(),
+      text: question,
+      answer: answer,
+      type: op,
+      hint: hint,
+      userAnswer: null,
+      isCorrect: false,
+      timeSpent: 0,
+      startTime: Date.now()
+    };
+
+    // FIX: Ensure all required fields are present and valid
+    if (!questionObj.text || typeof questionObj.answer !== 'number' || isNaN(questionObj.answer)) {
+      console.error('Generated invalid question:', questionObj);
+      return null;
+    }
+
+    return questionObj;
+  } catch (error) {
+    console.error('Error in generateQuestion:', error);
+    return null;
+  }
 };
 
 const calculateLevel = (xp) => Math.floor(Math.sqrt(xp / 100)) + 1;
@@ -237,6 +265,9 @@ export default function MathMasterApp() {
   const [isRemediation, setIsRemediation] = useState(false);
 
   const timerRef = useRef(null);
+  const questionStartTimeRef = useRef(null); // FIX: Track actual start time per question
+  const isTransitioning = useRef(false); // FIX: Prevent race conditions during state transitions
+  const questionsRef = useRef([]); // FIX: Protect questions from being lost during re-renders
   
   // Dynamic Configuration Selector
   const { currentTheme, currentLevels } = useMemo(() => {
@@ -263,9 +294,19 @@ export default function MathMasterApp() {
   // Load persistence
   useEffect(() => {
     const saved = localStorage.getItem('mathMasterProfile');
-    if (saved) setProfile(JSON.parse(saved));
+    if (saved) {
+      try {
+        setProfile(JSON.parse(saved));
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+        // Reset to default on corruption
+        localStorage.removeItem('mathMasterProfile');
+      }
+    }
     const savedTheme = localStorage.getItem('mathMasterTheme');
-    if (savedTheme) setTheme(savedTheme);
+    if (savedTheme && (savedTheme === 'demonSlayer' || savedTheme === 'normal')) {
+      setTheme(savedTheme);
+    }
   }, []);
 
   // Save persistence
@@ -274,6 +315,101 @@ export default function MathMasterApp() {
     localStorage.setItem('mathMasterTheme', theme);
   }, [profile, theme]);
   
+  // FIX: Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
+  
+  // FIX: Add state validation effect to catch and recover from inconsistent states
+  useEffect(() => {
+    // Only run validation if we're in an active game state
+    if (gameState === 'playing' || gameState === 'learning' || gameState === 'zen') {
+      console.log('State validation check:', {
+        gameState,
+        questionsLength: questions.length,
+        currentIndex,
+        hasCurrentLevel: !!currentLevel
+      });
+
+      // Don't interfere if we're transitioning
+      if (isTransitioning.current) {
+        console.log('Skipping validation - transition in progress');
+        return;
+      }
+      
+      if (!Array.isArray(questions)) {
+        console.error('Questions is not an array, returning to menu');
+        setGameState('menu');
+        return;
+      }
+      
+      if (questions.length === 0) {
+        console.error('Questions array is empty in active game state - this indicates a serious bug');
+        // Only show alert and return to menu if we're not already handling this
+        if (gameState !== 'menu') {
+          alert('Error: Questions were lost during gameplay. Returning to menu.');
+          setGameState('menu');
+        }
+        return;
+      }
+      
+      if (currentIndex < 0) {
+        console.warn('Current index is negative, resetting to 0');
+        setCurrentIndex(0);
+        return;
+      }
+      
+      if (currentIndex >= questions.length) {
+        console.warn('Current index exceeds questions array:', {
+          currentIndex,
+          questionsLength: questions.length,
+          gameMode
+        });
+        
+        if (gameMode === 'zen') {
+          // Generate new question for zen mode
+          console.log('Generating new question for zen mode');
+          try {
+            const nextQ = generateQuestion(currentLevel);
+            if (nextQ) {
+              setQuestions(prev => [...prev, nextQ]);
+            } else {
+              console.error('Failed to generate question for zen mode');
+              setGameState('menu');
+            }
+          } catch (error) {
+            console.error('Error generating zen mode question:', error);
+            setGameState('menu');
+          }
+        } else {
+          // End game normally
+          if (history.length > 0) {
+            console.log('Ending game with history length:', history.length);
+            finishGame(history);
+          } else {
+            console.log('No history available, returning to menu');
+            setGameState('menu');
+          }
+        }
+        return;
+      }
+      
+      if (!questions[currentIndex]) {
+        console.error('Question at current index is undefined:', {
+          currentIndex,
+          questionsLength: questions.length,
+          questionExists: !!questions[currentIndex]
+        });
+        setGameState('menu');
+        return;
+      }
+    }
+  }, [gameState, currentIndex, questions.length, currentLevel, history, gameMode]);
+
   // Theme Toggle Function
   const toggleTheme = () => {
     const newTheme = theme === 'demonSlayer' ? 'normal' : 'demonSlayer';
@@ -284,6 +420,12 @@ export default function MathMasterApp() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (gameState !== 'playing' && gameState !== 'learning' && gameState !== 'zen') return;
+      
+      // FIX: Validate game state before processing input
+      if (currentIndex >= questions.length || !questions[currentIndex]) {
+        console.warn('Invalid state in keyboard handler, ignoring input');
+        return;
+      }
 
       if (e.key >= '0' && e.key <= '9') {
         if (input.length < 5) setInput(prev => prev + e.key);
@@ -294,6 +436,10 @@ export default function MathMasterApp() {
           if (gameState === 'playing' || gameState === 'zen') submitAnswer(input);
           if (gameState === 'learning') checkLearningAnswer(input);
         }
+      } else if (e.key === 'Escape') {
+        // FIX: Add escape key to exit games
+        if (timerRef.current) clearInterval(timerRef.current);
+        setGameState('menu');
       }
     };
 
@@ -304,22 +450,57 @@ export default function MathMasterApp() {
   // --- GAME LOGIC ---
 
   const startGame = (level, mode = 'challenge', specificOps = null) => {
+    // FIX: Validate level object
+    if (!level || !level.id || !level.ops || !level.range) {
+      console.error('Invalid level object:', level);
+      return;
+    }
+
+    // FIX: Clear any existing timer before starting new game
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
     setCurrentLevel(level);
     setIsRemediation(!!specificOps);
     setGameMode(mode);
     
-    // Generate questions
+    // Generate questions with validation
     const qCount = mode === 'learning' ? 5 : (mode === 'zen' ? 1 : 10);
-    const newQuestions = Array.from({ length: qCount }).map(() => {
-      const opToUse = specificOps ? specificOps[getRandomInt(0, specificOps.length - 1)] : null;
-      return generateQuestion(level, opToUse);
-    });
+    const newQuestions = [];
+    
+    // FIX: Ensure we actually generate the questions
+    for (let i = 0; i < qCount; i++) {
+      try {
+        const opToUse = specificOps ? specificOps[Math.floor(Math.random() * specificOps.length)] : null;
+        const question = generateQuestion(level, opToUse);
+        if (question && question.text && typeof question.answer === 'number') {
+          newQuestions.push(question);
+        } else {
+          console.error('Failed to generate valid question:', question);
+        }
+      } catch (error) {
+        console.error('Error generating question:', error);
+      }
+    }
 
+    // FIX: Validate we have questions before proceeding
+    if (newQuestions.length === 0) {
+      console.error('Failed to generate any questions for level:', level);
+      alert('Error: Could not generate questions. Please try again.');
+      return;
+    }
+
+    console.log('Generated', newQuestions.length, 'questions for', mode, 'mode');
+    
     setQuestions(newQuestions);
+    questionsRef.current = newQuestions; // FIX: Keep a ref copy for protection
     setCurrentIndex(0);
     setInput('');
     setHistory([]);
     setShowHint(false);
+    isTransitioning.current = false; // Reset transition lock
 
     if (mode === 'learning') {
       setGameState('learning');
@@ -327,13 +508,27 @@ export default function MathMasterApp() {
       setGameState('zen');
     } else {
       setGameState('playing');
-      startQuestionTimer(level.timeLimit);
+      // FIX: Add small delay to ensure state is set before starting timer
+      setTimeout(() => {
+        if (newQuestions.length > 0) {
+          startQuestionTimer(level.timeLimit);
+        }
+      }, 10);
     }
   };
 
   const startQuestionTimer = (seconds) => {
+    console.log('Starting timer for', seconds, 'seconds. Current state:', {
+      gameState,
+      currentIndex,
+      questionsLength: questions.length,
+      currentLevel: currentLevel?.name
+    });
+
     if (timerRef.current) clearInterval(timerRef.current);
     setTimeLeft(seconds);
+    questionStartTimeRef.current = Date.now(); // FIX: Record actual start time
+    
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -345,23 +540,95 @@ export default function MathMasterApp() {
     }, 1000);
   };
 
-  const handleTimeUp = () => submitAnswer(null, true);
+  // FIX: Properly handle timeout scenario with better state checking
+  const handleTimeUp = () => {
+    console.log('Timer expired - Current state:', {
+      gameState,
+      currentIndex,
+      questionsLength: questions.length,
+      hasCurrentLevel: !!currentLevel
+    });
+
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // FIX: Check if we're still in a valid game state
+    if (gameState !== 'playing' && gameState !== 'zen') {
+      console.log('Timer fired but no longer in game state, ignoring');
+      return;
+    }
+
+    // FIX: Check if we have valid questions array
+    if (!Array.isArray(questions) || questions.length === 0) {
+      console.error('Timer fired but questions array is empty or invalid');
+      setGameState('menu');
+      return;
+    }
+
+    // FIX: Check if current index is valid
+    if (currentIndex < 0 || currentIndex >= questions.length) {
+      console.error('Timer fired but currentIndex is invalid:', currentIndex, 'questions length:', questions.length);
+      setGameState('menu');
+      return;
+    }
+
+    submitAnswer(null, true);
+  };
 
   const submitAnswer = (val, isTimeout = false) => {
-    const currentQ = questions[currentIndex];
-    const numVal = parseInt(val, 10);
-    const isCorrect = !isTimeout && numVal === currentQ.answer;
+    // FIX: Prevent race conditions during transitions
+    if (isTransitioning.current) {
+      console.log('Submission ignored - transition in progress');
+      return;
+    }
+    isTransitioning.current = true;
+
+    // FIX: Clear timer immediately to prevent double calls
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // FIX: Use ref as fallback if main questions state is lost
+    const currentQuestions = questions.length > 0 ? questions : questionsRef.current;
+    const currentQ = currentQuestions[currentIndex];
     
-    // Set timeSpent to full time limit on timeout, or calculate spent time if answered
-    const timeSpent = isTimeout ? currentLevel.timeLimit : currentLevel.timeLimit - timeLeft;
+    if (!currentQ) {
+      console.error('No current question found - Index:', currentIndex, 'Questions length:', currentQuestions.length);
+      console.error('State questions length:', questions.length, 'Ref questions length:', questionsRef.current.length);
+      
+      // Try to recover using the ref
+      if (questionsRef.current.length > 0 && currentIndex < questionsRef.current.length) {
+        console.log('Attempting to recover using questionsRef');
+        setQuestions(questionsRef.current);
+        return; // Let React re-render with recovered state
+      }
+      
+      // Recovery: Return to menu instead of crashing
+      isTransitioning.current = false;
+      setGameState('menu');
+      return;
+    }
+
+    const numVal = val ? parseInt(val, 10) : null;
+    const isCorrect = !isTimeout && !isNaN(numVal) && numVal === currentQ.answer;
+    
+    // FIX: Calculate accurate time spent
+    const actualTimeSpent = questionStartTimeRef.current 
+      ? (Date.now() - questionStartTimeRef.current) / 1000 
+      : currentLevel.timeLimit;
+    
+    // For timeout, use full time limit; for answered questions, use actual time
+    const timeSpent = isTimeout ? currentLevel.timeLimit : Math.min(actualTimeSpent, currentLevel.timeLimit);
     
     // Record history
     const historyEntry = {
       ...currentQ,
-      userAnswer: isTimeout ? 'Timeout' : numVal,
+      userAnswer: isTimeout ? 'Timeout' : (isNaN(numVal) ? 'Invalid' : numVal),
       isCorrect: isCorrect,
-      // TimeSpent is now guaranteed to be a number (full limit for timeout, or actual time)
-      timeSpent: timeSpent 
+      timeSpent: Math.round(timeSpent * 100) / 100 // Round to 2 decimal places
     };
 
     const newHistory = [...history, historyEntry];
@@ -372,7 +639,11 @@ export default function MathMasterApp() {
       // Standard progression
       setCurrentIndex(prev => prev + 1);
       setInput('');
-      if (gameMode === 'challenge') startQuestionTimer(currentLevel.timeLimit);
+      if (gameMode === 'challenge') {
+        startQuestionTimer(currentLevel.timeLimit);
+      }
+      // Allow transitions again after state updates are queued
+      setTimeout(() => { isTransitioning.current = false; }, 100);
     } else {
       // End of array reached
       if (gameMode === 'zen') {
@@ -381,20 +652,35 @@ export default function MathMasterApp() {
         setQuestions(prev => [...prev, nextQ]);
         setCurrentIndex(prev => prev + 1);
         setInput('');
+        // Don't start timer for zen mode
+        setTimeout(() => { isTransitioning.current = false; }, 100);
       } else {
         // Finish Game
         finishGame(newHistory);
+        isTransitioning.current = false;
       }
     }
   };
 
   const checkLearningAnswer = (val) => {
     const currentQ = questions[currentIndex];
+    if (!currentQ) {
+      console.error('No current question found in learning mode - Index:', currentIndex, 'Questions length:', questions.length);
+      // Recovery: Return to menu instead of crashing
+      setGameState('menu');
+      return;
+    }
+
     const numVal = parseInt(val, 10);
     
-    if (numVal === currentQ.answer) {
+    if (!isNaN(numVal) && numVal === currentQ.answer) {
       // Correct!
-      const historyEntry = { ...currentQ, isCorrect: true };
+      const historyEntry = { 
+        ...currentQ, 
+        isCorrect: true, 
+        userAnswer: numVal,
+        timeSpent: 0 // Learning mode doesn't track time
+      };
       const newHistory = [...history, historyEntry];
       setHistory(newHistory);
 
@@ -407,19 +693,27 @@ export default function MathMasterApp() {
         setGameState('menu'); 
       }
     } else {
-      // Wrong - shake effect or visual feedback could go here
-      // For now, just clear input
+      // Wrong - just clear input for retry
       setInput('');
-      // Maybe show hint automatically?
     }
   };
 
   const finishGame = (finalHistory) => {
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    // FIX: Validate finalHistory
+    if (!Array.isArray(finalHistory) || finalHistory.length === 0) {
+      console.error('Invalid final history:', finalHistory);
+      setGameState('menu');
+      return;
+    }
     
     // Calculate rewards
     const correctCount = finalHistory.filter(h => h.isCorrect).length;
-    const accuracy = (correctCount / finalHistory.length) * 100;
+    const accuracy = Math.round((correctCount / finalHistory.length) * 100);
     const xpEarned = Math.round(correctCount * 10 * currentLevel.xpMultiplier);
     
     // Update Stats
@@ -427,14 +721,21 @@ export default function MathMasterApp() {
     newStats.totalGames += 1;
     if (accuracy === 100) newStats.perfectSessions += 1;
     
-    // Find fastest correct, non-timeout answer
-    const correctTimes = finalHistory.filter(h => h.isCorrect).map(h => h.timeSpent);
-    const gameFastest = correctTimes.length > 0 ? Math.min(...correctTimes) : 0;
+    // FIX: Find fastest correct answer with proper validation
+    const correctAnswers = finalHistory.filter(h => h.isCorrect && typeof h.timeSpent === 'number');
+    const gameFastest = correctAnswers.length > 0 
+      ? Math.min(...correctAnswers.map(h => h.timeSpent)) 
+      : null;
 
-    if (gameFastest > 0 && gameFastest < newStats.fastestAnswer) newStats.fastestAnswer = gameFastest;
+    if (gameFastest !== null && gameFastest > 0 && gameFastest < newStats.fastestAnswer) {
+      newStats.fastestAnswer = gameFastest;
+    }
     
+    // FIX: Proper time checking for late night games
     const hour = new Date().getHours();
-    if (hour >= 22 || hour <= 4) newStats.lateNightGames += 1;
+    if (hour >= 22 || hour <= 4) {
+      newStats.lateNightGames += 1;
+    }
 
     // Check Badges
     const newBadges = [...profile.badges];
@@ -444,11 +745,15 @@ export default function MathMasterApp() {
       }
     });
 
+    // FIX: Validate XP calculation
+    const newXp = Math.max(0, profile.xp + xpEarned);
+    const newLevel = calculateLevel(newXp);
+
     // Update Profile
     setProfile(prev => ({
       ...prev,
-      xp: prev.xp + xpEarned,
-      level: calculateLevel(prev.xp + xpEarned),
+      xp: newXp,
+      level: newLevel,
       badges: newBadges,
       stats: newStats
     }));
@@ -463,11 +768,23 @@ export default function MathMasterApp() {
     if (input.length < 5) setInput(prev => prev + num);
   };
 
+  const handleBackspace = () => {
+    setInput(prev => prev.slice(0, -1));
+  };
+
+  const handleExit = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setGameState('menu');
+  };
+
   // --- VIEWS ---
 
   if (gameState === 'menu') {
     const nextLevelXp = calculateNextLevelXp(profile.level);
-    const prevLevelXp = calculateNextLevelXp(profile.level - 1);
+    const prevLevelXp = profile.level > 1 ? calculateNextLevelXp(profile.level - 1) : 0;
     const levelProgress = ((profile.xp - prevLevelXp) / (nextLevelXp - prevLevelXp)) * 100;
 
     return (
@@ -509,7 +826,7 @@ export default function MathMasterApp() {
                 <div className="w-48 h-2 bg-gray-700 rounded-full mt-2 overflow-hidden">
                   <div className={cn("h-full transition-all duration-500", currentTheme.ACCENT_BG_RED)} style={{ width: `${Math.max(5, Math.min(100, levelProgress))}%` }} />
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Next Rank: {nextLevelXp - profile.xp} XP needed</p>
+                <p className="text-xs text-gray-400 mt-1">Next Rank: {Math.max(0, nextLevelXp - profile.xp)} XP needed</p>
               </div>
             </div>
             
@@ -518,11 +835,11 @@ export default function MathMasterApp() {
               {profile.badges.length === 0 && <span className="text-sm text-gray-500 italic">Complete Missions to earn Badges!</span>}
               {profile.badges.map(bid => {
                 const b = BADGES.find(x => x.id === bid);
-                return (
+                return b ? (
                   <div key={bid} className={cn("h-10 w-10 rounded-full flex items-center justify-center text-xl shadow-sm border", "bg-gray-700 border-gray-600")} title={b.name}>
                     {b.icon}
                   </div>
-                );
+                ) : null;
               })}
             </div>
           </DynamicCard>
@@ -622,7 +939,7 @@ export default function MathMasterApp() {
                 <Activity className={currentTheme.ACCENT_TEAL} /> Why Mental Math Matters
               </h3>
               <p className="text-sm text-gray-400 mb-4">
-                Mental arithmetic is more than just speed—it’s about enhancing core cognitive skills. Regularly challenging yourself to calculate without external tools strengthens pattern recognition, improves concentration, and boosts overall logical reasoning. These skills are invaluable not just in academic math, but in everyday decision-making, finance, and problem-solving.
+                Mental arithmetic is more than just speed—it's about enhancing core cognitive skills. Regularly challenging yourself to calculate without external tools strengthens pattern recognition, improves concentration, and boosts overall logical reasoning. These skills are invaluable not just in academic math, but in everyday decision-making, finance, and problem-solving.
               </p>
               <div className="grid grid-cols-3 gap-4 text-center mt-6">
                   <div className="space-y-1">
@@ -653,9 +970,25 @@ export default function MathMasterApp() {
   
   if (gameState === 'playing' || gameState === 'learning' || gameState === 'zen') {
     const currentQ = questions[currentIndex];
+    
+    // FIX: Handle case where currentQ might be undefined
+    if (!currentQ) {
+      console.error('Current question is undefined');
+      return (
+        <div className={cn("min-h-screen flex items-center justify-center", currentTheme.DARK_BG, currentTheme.DARK_TEXT)}>
+          <div className="text-center">
+            <p className="mb-4">Error: No question available</p>
+            <DynamicButton currentTheme={currentTheme} theme={theme} onClick={() => setGameState('menu')}>
+              Return to Menu
+            </DynamicButton>
+          </div>
+        </div>
+      );
+    }
+
     const isLearning = gameState === 'learning';
     const isZen = gameState === 'zen';
-    const levelConfig = currentLevels.find(l => l.id === currentLevel.id);
+    const levelConfig = currentLevels.find(l => l.id === currentLevel?.id);
     const levelColor = levelConfig?.colorClass || currentTheme.ACCENT_TEAL;
     const levelName = levelConfig?.name || 'Level';
     const headerText = theme === 'demonSlayer' ? `${levelName} Form` : levelName;
@@ -671,7 +1004,7 @@ export default function MathMasterApp() {
               theme={theme}
               variant="ghost" 
               size="sm" 
-              onClick={() => { if(timerRef.current) clearInterval(timerRef.current); setGameState('menu'); }} 
+              onClick={handleExit}
               className="text-gray-400"
             >
               <RotateCcw className="mr-2 h-4 w-4" /> {theme === 'demonSlayer' ? 'Flee' : 'Exit'}
@@ -688,10 +1021,10 @@ export default function MathMasterApp() {
           {/* Game Card */}
           <DynamicCard currentTheme={currentTheme} className={cn("p-8 text-center relative overflow-hidden shadow-2xl", theme === 'demonSlayer' ? "shadow-red-900/20 border-red-800/50" : "shadow-indigo-900/20 border-indigo-400/50")}>
             {/* Timer (only for playing) */}
-            {!isLearning && !isZen && (
+            {!isLearning && !isZen && currentLevel && (
               <div 
                 className={`absolute top-0 left-0 h-1.5 transition-all duration-1000 linear ${timeLeft < 5 ? currentTheme.ACCENT_BG_RED : currentTheme.ACCENT_BG_TEAL}`}
-                style={{ width: `${(timeLeft / currentLevel.timeLimit) * 100}%` }}
+                style={{ width: `${Math.max(0, Math.min(100, (timeLeft / currentLevel.timeLimit) * 100))}%` }}
               />
             )}
 
@@ -741,7 +1074,7 @@ export default function MathMasterApp() {
                 </button>
               ))}
               <button 
-                onClick={() => setInput(prev => prev.slice(0, -1))}
+                onClick={handleBackspace}
                 className="h-14 rounded-xl bg-red-800 hover:bg-red-700 border border-red-900 text-white flex items-center justify-center transition-colors shadow-lg"
               >
                 ⌫
@@ -755,7 +1088,14 @@ export default function MathMasterApp() {
               <DynamicButton
                 currentTheme={currentTheme}
                 theme={theme}
-                onClick={() => isLearning ? checkLearningAnswer(input) : submitAnswer(input)}
+                onClick={() => {
+                  if (!input) return;
+                  if (isLearning) {
+                    checkLearningAnswer(input);
+                  } else {
+                    submitAnswer(input);
+                  }
+                }}
                 disabled={!input}
                 className={cn("h-14 rounded-xl text-white flex items-center justify-center transition-colors shadow-lg", theme === 'demonSlayer' ? "shadow-teal-500/50" : "shadow-indigo-500/50")}
                 variant="themed"
@@ -765,7 +1105,7 @@ export default function MathMasterApp() {
             </div>
             
             <p className={cn("text-xs mt-6 hidden md:block", "text-gray-500")}>
-              {theme === 'demonSlayer' ? 'Total Concentration... use your keyboard number pad!' : 'Use your keyboard number pad!'}
+              {theme === 'demonSlayer' ? 'Total Concentration... use your keyboard number pad! Press ESC to flee.' : 'Use your keyboard number pad! Press ESC to exit.'}
             </p>
           </DynamicCard>
         </div>
@@ -777,7 +1117,7 @@ export default function MathMasterApp() {
 
   if (gameState === 'report') {
     const stats = analyzePerformance(history);
-    const xpEarned = Math.round(stats.correct * 10 * currentLevel.xpMultiplier);
+    const xpEarned = Math.round(stats.correct * 10 * (currentLevel?.xpMultiplier || 1));
 
     return (
       <div className={cn("min-h-screen flex items-center justify-center p-4", currentTheme.DARK_BG, currentTheme.DARK_TEXT)}>
@@ -854,7 +1194,9 @@ const analyzePerformance = (history) => {
     byType: {}
   };
 
-  analysis.accuracy = Math.round((analysis.correct / analysis.total) * 100);
+  if (analysis.total > 0) {
+    analysis.accuracy = Math.round((analysis.correct / analysis.total) * 100);
+  }
 
   history.forEach(q => {
     if (!analysis.byType[q.type]) analysis.byType[q.type] = { total: 0, correct: 0 };
@@ -864,8 +1206,126 @@ const analyzePerformance = (history) => {
 
   Object.keys(analysis.byType).forEach(type => {
     const stats = analysis.byType[type];
-    if ((stats.correct / stats.total) < 0.7) analysis.weaknesses.push(type);
+    if (stats.total > 0 && (stats.correct / stats.total) < 0.7) {
+      analysis.weaknesses.push(type);
+    }
   });
 
   return analysis;
+};
+
+// --- DEBUG UTILITIES ---
+// FIX: Add comprehensive state validation for debugging
+const validateGameState = (gameState, questions, currentIndex, currentLevel) => {
+  const errors = [];
+  
+  if ((gameState === 'playing' || gameState === 'learning' || gameState === 'zen')) {
+    if (!Array.isArray(questions)) {
+      errors.push('Questions is not an array');
+    } else {
+      if (questions.length === 0) {
+        errors.push('Questions array is empty');
+      }
+      if (currentIndex < 0 || currentIndex >= questions.length) {
+        errors.push(`Current index ${currentIndex} is out of bounds for questions array of length ${questions.length}`);
+      }
+      if (!questions[currentIndex]) {
+        errors.push(`No question at current index ${currentIndex}`);
+      }
+    }
+    
+    if (!currentLevel) {
+      errors.push('No current level set');
+    }
+  }
+  
+  if (errors.length > 0) {
+    console.error('Game state validation failed:', errors);
+    return false;
+  }
+  return true;
+};
+
+// FIX: Add level configuration validation
+const validateLevelConfig = (level) => {
+  if (!level) {
+    return { valid: false, error: 'Level is null or undefined' };
+  }
+  
+  if (!level.id) {
+    return { valid: false, error: 'Level missing id' };
+  }
+  
+  if (!Array.isArray(level.ops) || level.ops.length === 0) {
+    return { valid: false, error: 'Level missing or empty ops array' };
+  }
+  
+  if (!Array.isArray(level.range) || level.range.length !== 2) {
+    return { valid: false, error: 'Level missing or invalid range' };
+  }
+  
+  if (level.range[0] >= level.range[1]) {
+    return { valid: false, error: 'Level range invalid: min >= max' };
+  }
+  
+  if (!level.timeLimit || level.timeLimit <= 0) {
+    return { valid: false, error: 'Level missing or invalid timeLimit' };
+  }
+  
+  return { valid: true };
+};
+
+// FIX: Test question generation for all levels
+const testQuestionGeneration = () => {
+  console.log('Testing question generation for all levels...');
+  
+  const testLevels = [
+    ...DEMON_SLAYER_LEVELS,
+    ...NORMAL_LEVELS
+  ];
+  
+  testLevels.forEach(level => {
+    console.log(`Testing level: ${level.name}`);
+    
+    const validation = validateLevelConfig(level);
+    if (!validation.valid) {
+      console.error(`Level ${level.name} invalid:`, validation.error);
+      return;
+    }
+    
+    // Test generating 3 questions for each level
+    for (let i = 0; i < 3; i++) {
+      try {
+        const question = generateQuestion(level);
+        if (!question) {
+          console.error(`Failed to generate question ${i + 1} for level ${level.name}`);
+        } else {
+          console.log(`✓ Generated: ${question.text} = ${question.answer}`);
+        }
+      } catch (error) {
+        console.error(`Error generating question ${i + 1} for level ${level.name}:`, error);
+      }
+    }
+  });
+};
+
+// FIX: Test the specific Easy mode timeout scenario
+const testEasyModeTimeout = () => {
+  console.log('Testing Easy mode timeout scenario...');
+  
+  const easyLevel = NORMAL_LEVELS.find(l => l.name === 'Easy');
+  if (!easyLevel) {
+    console.error('Easy level not found');
+    return;
+  }
+  
+  console.log('Easy level config:', easyLevel);
+  
+  // Test question generation
+  for (let i = 0; i < 5; i++) {
+    const question = generateQuestion(easyLevel);
+    console.log(`Easy question ${i + 1}:`, question);
+  }
+  
+  return easyLevel;
 };
