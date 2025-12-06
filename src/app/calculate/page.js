@@ -410,6 +410,24 @@ export default function MathMasterApp() {
     }
   }, [gameState, currentIndex, questions.length, currentLevel, history, gameMode]);
 
+  // FIX: Add effect to start timer after game state changes to 'playing' or when moving to next question
+  useEffect(() => {
+    // Only start timer when in playing state with valid questions
+    if (gameState === 'playing' && currentLevel && questions.length > 0 && currentIndex >= 0 && currentIndex < questions.length) {
+      console.log(`Game state allows timer start. Starting timer for question ${currentIndex + 1}/${questions.length}`);
+      // Small delay to ensure all state updates are complete
+      const timer = setTimeout(() => {
+        // Don't check isTransitioning here - we want to start the timer even during transitions
+        console.log('Actually starting timer now...');
+        startQuestionTimer(currentLevel.timeLimit);
+        // Clear transition lock after starting timer
+        isTransitioning.current = false;
+      }, 50);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [gameState, currentIndex, currentLevel]); // Trigger when gameState, currentIndex, or currentLevel changes
+
   // Theme Toggle Function
   const toggleTheme = () => {
     const newTheme = theme === 'demonSlayer' ? 'normal' : 'demonSlayer';
@@ -508,12 +526,7 @@ export default function MathMasterApp() {
       setGameState('zen');
     } else {
       setGameState('playing');
-      // FIX: Add small delay to ensure state is set before starting timer
-      setTimeout(() => {
-        if (newQuestions.length > 0) {
-          startQuestionTimer(level.timeLimit);
-        }
-      }, 10);
+      // Timer will be started by useEffect when gameState changes to 'playing'
     }
   };
 
@@ -529,71 +542,104 @@ export default function MathMasterApp() {
     setTimeLeft(seconds);
     questionStartTimeRef.current = Date.now(); // FIX: Record actual start time
     
+    // FIX: Keep track of remaining time outside of state for more reliable timeout detection
+    let remainingTime = seconds;
+    
     timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          handleTimeUp();
-          return 0;
-        }
-        return prev - 1;
-      });
+      remainingTime -= 1;
+      console.log('Timer tick:', remainingTime, 'seconds remaining');
+      
+      setTimeLeft(remainingTime);
+      
+      // FIX: Check timeout outside of setTimeLeft callback to avoid stale closures
+      if (remainingTime <= 0) {
+        console.log('Timer reached 0 - calling handleTimeUp');
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+        // Call handleTimeUp immediately, not in setTimeout
+        handleTimeUp();
+      }
     }, 1000);
   };
 
-  // FIX: Properly handle timeout scenario with better state checking
+  // FIX: Simplified timeout handler that directly processes the timeout
   const handleTimeUp = () => {
-    console.log('Timer expired - Current state:', {
+    console.log('=== TIMEOUT OCCURRED ===');
+    console.log('Current state when timeout occurred:', {
       gameState,
       currentIndex,
       questionsLength: questions.length,
-      hasCurrentLevel: !!currentLevel
+      hasCurrentLevel: !!currentLevel,
+      isTransitioning: isTransitioning.current
     });
 
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+    // FIX: Prevent multiple timeout calls
+    if (isTransitioning.current) {
+      console.log('Already transitioning, ignoring timeout');
+      return;
     }
 
-    // FIX: Check if we're still in a valid game state
+    // FIX: Validate we're in a proper game state
     if (gameState !== 'playing' && gameState !== 'zen') {
-      console.log('Timer fired but no longer in game state, ignoring');
+      console.log('Not in playing/zen state, ignoring timeout');
       return;
     }
 
-    // FIX: Check if we have valid questions array
-    if (!Array.isArray(questions) || questions.length === 0) {
-      console.error('Timer fired but questions array is empty or invalid');
-      setGameState('menu');
+    // FIX: Validate we have questions
+    if (!questions || questions.length === 0) {
+      console.error('No questions available during timeout');
       return;
     }
 
-    // FIX: Check if current index is valid
+    // FIX: Validate current index
     if (currentIndex < 0 || currentIndex >= questions.length) {
-      console.error('Timer fired but currentIndex is invalid:', currentIndex, 'questions length:', questions.length);
-      setGameState('menu');
+      console.error('Invalid currentIndex during timeout:', currentIndex);
       return;
     }
 
+    const currentQuestion = questions[currentIndex];
+    if (!currentQuestion) {
+      console.error('Current question is undefined during timeout');
+      return;
+    }
+
+    console.log(`Timeout on question: "${currentQuestion.text}" (index ${currentIndex})`);
+    console.log('Calling submitAnswer with timeout flag...');
+    
+    // Directly call submitAnswer with timeout
     submitAnswer(null, true);
   };
 
   const submitAnswer = (val, isTimeout = false) => {
+    console.log('=== SUBMIT ANSWER CALLED ===');
+    console.log('Input:', val, 'IsTimeout:', isTimeout);
+    console.log('Current state:', {
+      gameState,
+      currentIndex,
+      questionsLength: questions.length,
+      isTransitioning: isTransitioning.current
+    });
+
     // FIX: Prevent race conditions during transitions
     if (isTransitioning.current) {
       console.log('Submission ignored - transition in progress');
       return;
     }
     isTransitioning.current = true;
+    console.log('Setting transition lock to true');
 
     // FIX: Clear timer immediately to prevent double calls
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+      console.log('Timer cleared');
     }
 
     // FIX: Use ref as fallback if main questions state is lost
     const currentQuestions = questions.length > 0 ? questions : questionsRef.current;
     const currentQ = currentQuestions[currentIndex];
+    
+    console.log('Current question:', currentQ);
     
     if (!currentQ) {
       console.error('No current question found - Index:', currentIndex, 'Questions length:', currentQuestions.length);
@@ -603,18 +649,29 @@ export default function MathMasterApp() {
       if (questionsRef.current.length > 0 && currentIndex < questionsRef.current.length) {
         console.log('Attempting to recover using questionsRef');
         setQuestions(questionsRef.current);
+        isTransitioning.current = false;
         return; // Let React re-render with recovered state
       }
       
       // Recovery: Return to menu instead of crashing
+      console.log('Could not recover, returning to menu');
       isTransitioning.current = false;
       setGameState('menu');
       return;
     }
 
     const numVal = val ? parseInt(val, 10) : null;
+    // FIX: Timeout questions are always marked as incorrect
     const isCorrect = !isTimeout && !isNaN(numVal) && numVal === currentQ.answer;
     
+    console.log('Answer evaluation:', {
+      userInput: val,
+      parsedNumber: numVal,
+      correctAnswer: currentQ.answer,
+      isTimeout,
+      isCorrect
+    });
+
     // FIX: Calculate accurate time spent
     const actualTimeSpent = questionStartTimeRef.current 
       ? (Date.now() - questionStartTimeRef.current) / 1000 
@@ -623,39 +680,44 @@ export default function MathMasterApp() {
     // For timeout, use full time limit; for answered questions, use actual time
     const timeSpent = isTimeout ? currentLevel.timeLimit : Math.min(actualTimeSpent, currentLevel.timeLimit);
     
-    // Record history
+    // Record history with explicit timeout handling
     const historyEntry = {
       ...currentQ,
       userAnswer: isTimeout ? 'Timeout' : (isNaN(numVal) ? 'Invalid' : numVal),
-      isCorrect: isCorrect,
+      isCorrect: isCorrect, // This will be false for timeouts
       timeSpent: Math.round(timeSpent * 100) / 100 // Round to 2 decimal places
     };
+
+    console.log(isTimeout ? 'Question timed out - marked as incorrect' : 'Question answered', historyEntry);
 
     const newHistory = [...history, historyEntry];
     setHistory(newHistory);
 
-    // Logic for next question
+    // Logic for next question - same behavior for timeout and manual answers
     if (currentIndex < questions.length - 1) {
-      // Standard progression
-      setCurrentIndex(prev => prev + 1);
+      // Move to next question
+      const nextIndex = currentIndex + 1;
+      console.log(`Moving to question ${nextIndex + 1}/${questions.length}`);
+      setCurrentIndex(nextIndex);
       setInput('');
-      if (gameMode === 'challenge') {
-        startQuestionTimer(currentLevel.timeLimit);
-      }
-      // Allow transitions again after state updates are queued
-      setTimeout(() => { isTransitioning.current = false; }, 100);
+      
+      // FIX: Don't manage transition lock here - let useEffect handle both timer and lock
+      // The useEffect will clear isTransitioning.current when it starts the timer
     } else {
-      // End of array reached
+      // End of questions array reached
       if (gameMode === 'zen') {
         // Infinite mode: Add new question and continue
         const nextQ = generateQuestion(currentLevel);
         setQuestions(prev => [...prev, nextQ]);
+        questionsRef.current = [...questionsRef.current, nextQ];
         setCurrentIndex(prev => prev + 1);
         setInput('');
+        console.log('Added new question for zen mode');
         // Don't start timer for zen mode
         setTimeout(() => { isTransitioning.current = false; }, 100);
       } else {
         // Finish Game
+        console.log('Game completed - moving to results');
         finishGame(newHistory);
         isTransitioning.current = false;
       }
