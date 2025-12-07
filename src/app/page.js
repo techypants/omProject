@@ -1,7 +1,9 @@
 import MathematicalHeroSection from "@/components/PhysicsSection";
+import QRcodeComponent from "@/components/QrCodeComponent";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { MoveRight } from "lucide-react";
+import { GraduationCap, MoveRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,7 +17,13 @@ export default function Home() {
         <div className=" font-bold">
           <p className="text-xl text-muted-foreground" >Namaste!</p>
           <p className="text-4xl text-muted-foreground" >This is </p>
-          <p className="text-8xl mix-blend-difference ">Math Master </p>
+          <div className="text-8xl relative">
+            <div>Maths</div>
+            <div className="relative w-fit ">
+              Master
+                <div className="absolute -top-2 -right-6 rotate-20 text-muted-foreground" ><GraduationCap className="size-12" /></div>
+              </div>
+          </div>
 
         </div>
         <div className="text-5xl font-semibold opacity-75">
@@ -39,8 +47,19 @@ export default function Home() {
             </Link>
         </div>
 
-        <div className="text-center font-semibold bg-muted/50 backdrop-blur-2xl p-8 px-4 rounded-2xl " >
-            <p>A project by Om Rajesh Pant from PM shri Kendriya Vidyalaya OFAJ Nagpur</p>
+        {/* <div className="text-center font-semibold bg-muted/50 backdrop-blur-2xl p-8 px-4 rounded-2xl " > */}
+        <Card className={cn('bg-transparent')} >
+            <CardHeader className={cn('text-center font-semibold')} >
+                <p>A project by Om Rajesh Pant from PM shri Kendriya Vidyalaya OFAJ Nagpur</p>
+            </CardHeader>
+            <CardContent>
+              <QRcodeComponent/>
+            </CardContent>
+        </Card>
+        {/* </div> */}
+
+        <div>
+          
         </div>
 
       </div>
