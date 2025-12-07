@@ -1,0 +1,89 @@
+<svg viewBox="0 0 1300 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font: bold 28px sans-serif; fill: #1f2937; }
+      .heading { font: bold 20px sans-serif; fill: #1f2937; }
+      .text { font: 14px sans-serif; fill: #4b5563; }
+      .small-text { font: 12px sans-serif; fill: #6b7280; }
+      .box-red { fill: #fee2e2; stroke: #ef4444; stroke-width: 3; }
+      .box-blue { fill: #dbeafe; stroke: #3b82f6; stroke-width: 3; }
+      .box-green { fill: #d1fae5; stroke: #10b981; stroke-width: 3; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="650" y="40" class="title" text-anchor="middle">Diagram 3: Three Game Modes</text>
+  <line x1="100" y1="50" x2="1200" y2="50" stroke="#e5e7eb" stroke-width="2"/>
+
+  <!-- Challenge Mode -->
+  <rect x="50" y="100" width="380" height="350" rx="10" class="box-red"/>
+  
+  <!-- Icon/Badge -->
+  <circle cx="240" cy="130" r="20" fill="#ef4444"/>
+  <text x="240" y="138" text-anchor="middle" fill="white" font-size="20" font-weight="bold">⚔</text>
+  
+  <text x="240" y="170" class="heading" text-anchor="middle" fill="#991b1b">CHALLENGE MODE</text>
+  
+  <text x="70" y="210" class="text" font-weight="bold">Features:</text>
+  <text x="90" y="235" class="text">• 10 questions per session</text>
+  <text x="90" y="260" class="text">• Time limit: 15-45 seconds</text>
+  <text x="90" y="285" class="text">• Timer counts down</text>
+  <text x="90" y="310" class="text">• Earn XP points</text>
+  <text x="90" y="335" class="text">• Level up system</text>
+  <text x="90" y="360" class="text">• Weakness analysis</text>
+  
+  <rect x="70" y="375" width="330" height="55" rx="5" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="235" y="395" class="small-text" text-anchor="middle" font-weight="bold">Best For:</text>
+  <text x="235" y="413" class="small-text" text-anchor="middle">Competitive students who</text>
+  <text x="235" y="427" class="small-text" text-anchor="middle">want challenges and rewards</text>
+
+  <!-- Learning Mode -->
+  <rect x="460" y="100" width="380" height="350" rx="10" class="box-blue"/>
+  
+  <!-- Icon/Badge -->
+  <circle cx="650" cy="130" r="20" fill="#3b82f6"/>
+  <text x="650" y="138" text-anchor="middle" fill="white" font-size="20" font-weight="bold">📚</text>
+  
+  <text x="650" y="170" class="heading" text-anchor="middle" fill="#1e40af">LEARNING MODE</text>
+  
+  <text x="480" y="210" class="text" font-weight="bold">Features:</text>
+  <text x="500" y="235" class="text">• 5 questions per session</text>
+  <text x="500" y="260" class="text">• NO time limit</text>
+  <text x="500" y="285" class="text">• Hint system available</text>
+  <text x="500" y="310" class="text">• Step-by-step guidance</text>
+  <text x="500" y="335" class="text">• Unlimited attempts</text>
+  <text x="500" y="360" class="text">• Focus on understanding</text>
+  
+  <rect x="480" y="375" width="330" height="55" rx="5" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="645" y="395" class="small-text" text-anchor="middle" font-weight="bold">Best For:</text>
+  <text x="645" y="413" class="small-text" text-anchor="middle">Students who need to learn</text>
+  <text x="645" y="427" class="small-text" text-anchor="middle">without pressure or stress</text>
+
+  <!-- Zen Mode -->
+  <rect x="870" y="100" width="380" height="350" rx="10" class="box-green"/>
+  
+  <!-- Icon/Badge -->
+  <circle cx="1060" cy="130" r="20" fill="#10b981"/>
+  <text x="1060" y="138" text-anchor="middle" fill="white" font-size="20" font-weight="bold">🧘</text>
+  
+  <text x="1060" y="170" class="heading" text-anchor="middle" fill="#065f46">ZEN MODE</text>
+  
+  <text x="890" y="210" class="text" font-weight="bold">Features:</text>
+  <text x="910" y="235" class="text">• INFINITE questions</text>
+  <text x="910" y="260" class="text">• NO time limit</text>
+  <text x="910" y="285" class="text">• NO scoring</text>
+  <text x="910" y="310" class="text">• NO XP points</text>
+  <text x="910" y="335" class="text">• Never ends</text>
+  <text x="910" y="360" class="text">• Pure practice focus</text>
+  
+  <rect x="890" y="375" width="330" height="55" rx="5" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="1055" y="395" class="small-text" text-anchor="middle" font-weight="bold">Best For:</text>
+  <text x="1055" y="413" class="small-text" text-anchor="middle">Perfectionists who want</text>
+  <text x="1055" y="427" class="small-text" text-anchor="middle">unlimited practice time</text>
+
+  <!-- Bottom comparison -->
+  <rect x="50" y="460" width="1200" height="30" rx="5" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
+  <text x="650" y="482" class="text" text-anchor="middle" font-style="italic">
+    All three modes use the same questions - only the experience is different!
+  </text>
+</svg>
