@@ -1,0 +1,80 @@
+<svg viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font: bold 28px sans-serif; fill: #1f2937; }
+      .heading { font: bold 18px sans-serif; fill: #1f2937; }
+      .text { font: 14px sans-serif; fill: #4b5563; }
+      .small-text { font: 12px sans-serif; fill: #6b7280; }
+      .box-blue { fill: #dbeafe; stroke: #3b82f6; stroke-width: 3; }
+      .box-green { fill: #d1fae5; stroke: #10b981; stroke-width: 3; }
+      .box-yellow { fill: #fef3c7; stroke: #f59e0b; stroke-width: 3; }
+      .arrow { fill: none; stroke: #374151; stroke-width: 3; }
+      .circle { fill: #60a5fa; stroke: #1e40af; stroke-width: 2; }
+      .number { font: bold 18px sans-serif; fill: white; }
+    </style>
+    
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#374151" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="40" class="title" text-anchor="middle">Diagram 1: User Journey Flow</text>
+  <line x1="200" y1="50" x2="1000" y2="50" stroke="#e5e7eb" stroke-width="2"/>
+
+  <!-- Step 1: User Opens Browser -->
+  <circle cx="150" cy="180" r="35" class="circle"/>
+  <text x="150" y="188" class="number" text-anchor="middle">1</text>
+  <text x="150" y="240" class="text" text-anchor="middle" font-weight="bold">User Opens</text>
+  <text x="150" y="260" class="text" text-anchor="middle">Browser</text>
+
+  <!-- Arrow -->
+  <line x1="185" y1="180" x2="245" y2="180" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- Step 2: Menu Screen -->
+  <rect x="250" y="120" width="180" height="120" rx="10" class="box-blue"/>
+  <text x="340" y="150" class="heading" text-anchor="middle">MENU SCREEN</text>
+  <text x="340" y="175" class="small-text" text-anchor="middle">Choose Theme</text>
+  <text x="340" y="195" class="small-text" text-anchor="middle">Select Difficulty Level</text>
+  <text x="340" y="215" class="small-text" text-anchor="middle">Pick Game Mode</text>
+  
+  <circle cx="340" cy="80" r="20" fill="#3b82f6"/>
+  <text x="340" y="87" class="number" text-anchor="middle" font-size="16">2</text>
+
+  <!-- Arrow -->
+  <line x1="430" y1="180" x2="490" y2="180" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- Step 3: Playing Screen -->
+  <rect x="495" y="120" width="180" height="120" rx="10" class="box-green"/>
+  <text x="585" y="150" class="heading" text-anchor="middle">PLAYING</text>
+  <text x="585" y="175" class="small-text" text-anchor="middle">Show Questions</text>
+  <text x="585" y="195" class="small-text" text-anchor="middle">Timer Running</text>
+  <text x="585" y="215" class="small-text" text-anchor="middle">User Types Answer</text>
+  
+  <circle cx="585" cy="80" r="20" fill="#10b981"/>
+  <text x="585" y="87" class="number" text-anchor="middle" font-size="16">3</text>
+
+  <!-- Arrow -->
+  <line x1="675" y1="180" x2="735" y2="180" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <!-- Step 4: Report Screen -->
+  <rect x="740" y="120" width="180" height="120" rx="10" class="box-yellow"/>
+  <text x="830" y="150" class="heading" text-anchor="middle">REPORT</text>
+  <text x="830" y="175" class="small-text" text-anchor="middle">Show Score</text>
+  <text x="830" y="195" class="small-text" text-anchor="middle">Award XP Points</text>
+  <text x="830" y="215" class="small-text" text-anchor="middle">Analyze Weaknesses</text>
+  
+  <circle cx="830" cy="80" r="20" fill="#f59e0b"/>
+  <text x="830" y="87" class="number" text-anchor="middle" font-size="16">4</text>
+
+  <!-- Return arrow -->
+  <path d="M 830 240 Q 830 310 340 310 Q 340 260 340 240" 
+        fill="none" stroke="#9ca3af" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+  <text x="585" y="330" class="text" text-anchor="middle" fill="#6b7280">Return to Menu (Loop)</text>
+
+  <!-- Bottom note -->
+  <rect x="100" y="350" width="1000" height="35" rx="5" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
+  <text x="600" y="373" class="text" text-anchor="middle" font-style="italic">
+    This is the main flow: Menu → Play → Report → Back to Menu
+  </text>
+</svg>

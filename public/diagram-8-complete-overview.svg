@@ -1,0 +1,153 @@
+<svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font: bold 32px sans-serif; fill: #1f2937; }
+      .subtitle { font: bold 22px sans-serif; fill: #374151; }
+      .heading { font: bold 16px sans-serif; fill: #1f2937; }
+      .text { font: 13px sans-serif; fill: #4b5563; }
+      .small-text { font: 11px sans-serif; fill: #6b7280; }
+      .box-blue { fill: #dbeafe; stroke: #3b82f6; stroke-width: 2; }
+      .box-green { fill: #d1fae5; stroke: #10b981; stroke-width: 2; }
+      .box-purple { fill: #f3e8ff; stroke: #a855f7; stroke-width: 2; }
+      .box-yellow { fill: #fef3c7; stroke: #f59e0b; stroke-width: 2; }
+      .box-red { fill: #fee2e2; stroke: #ef4444; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="700" y="45" class="title" text-anchor="middle">Math Master - Complete System Overview</text>
+  <line x1="100" y1="60" x2="1300" y2="60" stroke="#e5e7eb" stroke-width="2"/>
+
+  <!-- Top: User Interface Layer -->
+  <rect x="50" y="90" width="1300" height="140" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="3"/>
+  <text x="700" y="120" class="subtitle" text-anchor="middle" fill="#1e40af">USER INTERFACE LAYER</text>
+
+  <rect x="80" y="140" width="220" height="70" rx="5" class="box-blue"/>
+  <text x="190" y="163" class="heading" text-anchor="middle">Menu Screen</text>
+  <text x="90" y="183" class="small-text">• Theme selection</text>
+  <text x="90" y="198" class="small-text">• Level cards</text>
+
+  <rect x="330" y="140" width="220" height="70" rx="5" class="box-blue"/>
+  <text x="440" y="163" class="heading" text-anchor="middle">Game Screen</text>
+  <text x="340" y="183" class="small-text">• Question display</text>
+  <text x="340" y="198" class="small-text">• Number pad</text>
+
+  <rect x="580" y="140" width="220" height="70" rx="5" class="box-blue"/>
+  <text x="690" y="163" class="heading" text-anchor="middle">Report Screen</text>
+  <text x="590" y="183" class="small-text">• Score display</text>
+  <text x="590" y="198" class="small-text">• XP awards</text>
+
+  <rect x="830" y="140" width="220" height="70" rx="5" class="box-blue"/>
+  <text x="940" y="163" class="heading" text-anchor="middle">Learning Mode</text>
+  <text x="840" y="183" class="small-text">• Hint system</text>
+  <text x="840" y="198" class="small-text">• No pressure</text>
+
+  <rect x="1080" y="140" width="220" height="70" rx="5" class="box-blue"/>
+  <text x="1190" y="163" class="heading" text-anchor="middle">Zen Mode</text>
+  <text x="1090" y="183" class="small-text">• Infinite practice</text>
+  <text x="1090" y="198" class="small-text">• No scoring</text>
+
+  <!-- Middle: State Management -->
+  <rect x="50" y="260" width="600" height="240" rx="10" fill="#faf5ff" stroke="#a855f7" stroke-width="3"/>
+  <text x="350" y="290" class="subtitle" text-anchor="middle" fill="#7c3aed">STATE MANAGEMENT</text>
+  
+  <text x="70" y="320" class="text" font-weight="bold">React State Variables:</text>
+  <text x="90" y="345" class="text">• gameState - Current screen</text>
+  <text x="90" y="365" class="text">• questions[] - Math problems</text>
+  <text x="90" y="385" class="text">• currentIndex - Which question</text>
+  <text x="90" y="405" class="text">• input - User answer</text>
+  <text x="90" y="425" class="text">• timeLeft - Timer countdown</text>
+  <text x="90" y="445" class="text">• profile - XP, level, badges</text>
+  <text x="90" y="465" class="text">• history[] - Session results</text>
+  <text x="90" y="485" class="text">• theme - Visual style</text>
+
+  <!-- Middle Right: Core Functions -->
+  <rect x="680" y="260" width="670" height="240" rx="10" fill="#f0fdf4" stroke="#10b981" stroke-width="3"/>
+  <text x="1015" y="290" class="subtitle" text-anchor="middle" fill="#065f46">CORE FUNCTIONS</text>
+
+  <rect x="710" y="310" width="290" height="80" rx="5" class="box-green"/>
+  <text x="855" y="333" class="heading" text-anchor="middle">generateQuestion()</text>
+  <text x="720" y="353" class="small-text">• Selects operation type</text>
+  <text x="720" y="368" class="small-text">• Generates random numbers</text>
+  <text x="720" y="383" class="small-text">• Creates question object</text>
+
+  <rect x="1030" y="310" width="290" height="80" rx="5" class="box-green"/>
+  <text x="1175" y="333" class="heading" text-anchor="middle">startGame()</text>
+  <text x="1040" y="353" class="small-text">• Generates 10 questions</text>
+  <text x="1040" y="368" class="small-text">• Initializes timer</text>
+  <text x="1040" y="383" class="small-text">• Sets game state to "playing"</text>
+
+  <rect x="710" y="405" width="290" height="80" rx="5" class="box-green"/>
+  <text x="855" y="428" class="heading" text-anchor="middle">submitAnswer()</text>
+  <text x="720" y="448" class="small-text">• Checks if answer is correct</text>
+  <text x="720" y="463" class="small-text">• Records in history</text>
+  <text x="720" y="478" class="small-text">• Moves to next question</text>
+
+  <rect x="1030" y="405" width="290" height="80" rx="5" class="box-green"/>
+  <text x="1175" y="428" class="heading" text-anchor="middle">finishGame()</text>
+  <text x="1040" y="448" class="small-text">• Calculates accuracy</text>
+  <text x="1040" y="463" class="small-text">• Awards XP points</text>
+  <text x="1040" y="478" class="small-text">• Analyzes weaknesses</text>
+
+  <!-- Bottom Left: Smart Systems -->
+  <rect x="50" y="530" width="600" height="300" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="3"/>
+  <text x="350" y="560" class="subtitle" text-anchor="middle" fill="#92400e">SMART SYSTEMS</text>
+
+  <rect x="80" y="580" width="250" height="100" rx="5" class="box-yellow"/>
+  <text x="205" y="603" class="heading" text-anchor="middle">Timer System</text>
+  <text x="90" y="623" class="small-text">• setInterval() runs every 1s</text>
+  <text x="90" y="638" class="small-text">• Decreases timeLeft</text>
+  <text x="90" y="653" class="small-text">• Auto-submit on timeout</text>
+  <text x="90" y="668" class="small-text">• Visual countdown bar</text>
+
+  <rect x="360" y="580" width="250" height="100" rx="5" class="box-yellow"/>
+  <text x="485" y="603" class="heading" text-anchor="middle">Weakness Analysis</text>
+  <text x="370" y="623" class="small-text">• Groups results by operation</text>
+  <text x="370" y="638" class="small-text">• Calculates accuracy %</text>
+  <text x="370" y="653" class="small-text">• Identifies under 70%</text>
+  <text x="370" y="668" class="small-text">• Suggests targeted practice</text>
+
+  <rect x="80" y="700" width="250" height="100" rx="5" class="box-yellow"/>
+  <text x="205" y="723" class="heading" text-anchor="middle">Gamification</text>
+  <text x="90" y="743" class="small-text">• XP points system</text>
+  <text x="90" y="758" class="small-text">• Level progression (1-5)</text>
+  <text x="90" y="773" class="small-text">• Achievement badges</text>
+  <text x="90" y="788" class="small-text">• Multiplier bonuses</text>
+
+  <rect x="360" y="700" width="250" height="100" rx="5" class="box-yellow"/>
+  <text x="485" y="723" class="heading" text-anchor="middle">Adaptive Learning</text>
+  <text x="370" y="743" class="small-text">• Progressive difficulty</text>
+  <text x="370" y="758" class="small-text">• Personalized hints</text>
+  <text x="370" y="773" class="small-text">• Remediation sessions</text>
+  <text x="370" y="788" class="small-text">• Performance tracking</text>
+
+  <!-- Bottom Right: Data Layer -->
+  <rect x="680" y="530" width="670" height="300" rx="10" fill="#fee2e2" stroke="#ef4444" stroke-width="3"/>
+  <text x="1015" y="560" class="subtitle" text-anchor="middle" fill="#991b1b">DATA PERSISTENCE</text>
+
+  <rect x="710" y="585" width="300" height="110" rx="5" class="box-red"/>
+  <text x="860" y="608" class="heading" text-anchor="middle">Browser localStorage</text>
+  <text x="720" y="628" class="small-text">Saves automatically:</text>
+  <text x="730" y="648" class="text">• profile.xp (experience points)</text>
+  <text x="730" y="668" class="text">• profile.level (1-5)</text>
+  <text x="730" y="688" class="text">• profile.badges (achievements)</text>
+
+  <rect x="1040" y="585" width="280" height="110" rx="5" class="box-red"/>
+  <text x="1180" y="608" class="heading" text-anchor="middle">Statistics Tracked</text>
+  <text x="1050" y="628" class="text">• Total games played</text>
+  <text x="1050" y="648" class="text">• Fastest answer time</text>
+  <text x="1050" y="668" class="text">• Perfect sessions count</text>
+  <text x="1050" y="688" class="text">• Late night games</text>
+
+  <rect x="710" y="715" width="610" height="95" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="1015" y="740" class="heading" text-anchor="middle" fill="#92400e">Key Advantages:</text>
+  <text x="730" y="762" class="text">✓ No server needed - runs completely client-side</text>
+  <text x="730" y="782" class="text">✓ Privacy-first - data never leaves user device</text>
+  <text x="730" y="802" class="text">✓ Works offline after initial load</text>
+
+  <!-- Footer -->
+  <rect x="50" y="855" width="1300" height="35" rx="5" fill="white"/>
+  <text x="700" y="880" class="title" text-anchor="middle" fill="white">
+    All components work together to create effective, engaging math practice!
+  </text>
+</svg>

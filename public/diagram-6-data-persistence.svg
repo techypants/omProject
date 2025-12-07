@@ -1,0 +1,95 @@
+<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font: bold 28px sans-serif; fill: #1f2937; }
+      .heading { font: bold 18px sans-serif; fill: #1f2937; }
+      .text { font: 14px sans-serif; fill: #4b5563; }
+      .small-text { font: 12px sans-serif; fill: #6b7280; }
+      .box-purple { fill: #f3e8ff; stroke: #a855f7; stroke-width: 3; }
+      .box { fill: #ffffff; stroke: #9ca3af; stroke-width: 2; }
+      .arrow-save { fill: none; stroke: #3b82f6; stroke-width: 3; }
+      .arrow-load { fill: none; stroke: #10b981; stroke-width: 3; }
+    </style>
+    
+    <marker id="save" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+    </marker>
+    <marker id="load" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#10b981" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="40" class="title" text-anchor="middle">Diagram 6: Data Persistence System</text>
+  <line x1="100" y1="50" x2="900" y2="50" stroke="#e5e7eb" stroke-width="2"/>
+  <text x="500" y="75" class="text" text-anchor="middle">How user progress is saved in browser (No server needed!)</text>
+
+  <!-- Browser localStorage -->
+  <rect x="50" y="120" width="300" height="300" rx="10" fill="#f3f4f6" stroke="#6b7280" stroke-width="3"/>
+  <text x="200" y="150" class="heading" text-anchor="middle">Browser</text>
+  <text x="200" y="175" class="text" text-anchor="middle">localStorage</text>
+  
+  <!-- Database icon -->
+  <rect x="140" y="200" width="120" height="100" rx="8" fill="#a855f7"/>
+  <circle cx="200" cy="235" r="25" fill="#7c3aed"/>
+  <text x="200" y="245" class="text" text-anchor="middle" fill="white" font-size="20" font-weight="bold">DB</text>
+  <text x="200" y="275" class="text" text-anchor="middle" fill="white">Local</text>
+  <text x="200" y="292" class="text" text-anchor="middle" fill="white">Storage</text>
+  
+  <rect x="70" y="320" width="260" height="80" rx="5" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="200" y="340" class="small-text" text-anchor="middle" font-weight="bold">Key Features:</text>
+  <text x="80" y="360" class="small-text">✓ Saves in browser memory</text>
+  <text x="80" y="378" class="small-text">✓ No server required</text>
+  <text x="80" y="394" class="small-text">✓ Private - stays on your device</text>
+
+  <!-- Save Arrow -->
+  <line x1="350" y1="200" x2="430" y2="200" class="arrow-save" marker-end="url(#save)"/>
+  <text x="370" y="190" class="small-text" fill="#3b82f6" font-weight="bold">SAVE →</text>
+
+  <!-- Load Arrow -->
+  <line x1="430" y1="270" x2="350" y2="270" class="arrow-load" marker-end="url(#load)"/>
+  <text x="360" y="290" class="small-text" fill="#10b981" font-weight="bold">← LOAD</text>
+
+  <!-- What Gets Saved -->
+  <rect x="430" y="120" width="520" height="300" rx="10" class="box-purple"/>
+  <text x="690" y="150" class="heading" text-anchor="middle">What Gets Saved</text>
+
+  <!-- Profile Data -->
+  <rect x="460" y="170" width="230" height="140" rx="5" class="box"/>
+  <text x="575" y="192" class="text" text-anchor="middle" font-weight="bold">profile.xp</text>
+  <text x="470" y="210" class="small-text">Total experience points</text>
+  <text x="470" y="226" class="text" fill="#3b82f6">Example: 1250 XP</text>
+  
+  <text x="575" y="250" class="text" text-anchor="middle" font-weight="bold">profile.level</text>
+  <text x="470" y="268" class="small-text">Current level (1-5)</text>
+  <text x="470" y="284" class="text" fill="#3b82f6">Example: Level 3</text>
+
+  <!-- Badges and Stats -->
+  <rect x="710" y="170" width="220" height="140" rx="5" class="box"/>
+  <text x="820" y="192" class="text" text-anchor="middle" font-weight="bold">profile.badges</text>
+  <text x="720" y="210" class="small-text">Unlocked achievements</text>
+  <text x="720" y="226" class="text" fill="#3b82f6">["first_steps", "speed"]</text>
+  
+  <text x="820" y="250" class="text" text-anchor="middle" font-weight="bold">profile.stats</text>
+  <text x="720" y="268" class="small-text">Game statistics</text>
+  <text x="720" y="284" class="text" fill="#3b82f6">totalGames, fastestAnswer</text>
+
+  <!-- Theme Preference -->
+  <rect x="460" y="330" width="230" height="70" rx="5" class="box"/>
+  <text x="575" y="352" class="text" text-anchor="middle" font-weight="bold">theme</text>
+  <text x="470" y="370" class="small-text">Visual theme preference</text>
+  <text x="470" y="386" class="text" fill="#3b82f6">"normal" or "demonSlayer"</text>
+
+  <!-- When It Saves -->
+  <rect x="710" y="330" width="220" height="70" rx="5" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+  <text x="820" y="352" class="text" text-anchor="middle" font-weight="bold">When?</text>
+  <text x="720" y="370" class="small-text">Automatically after:</text>
+  <text x="720" y="386" class="text">✓ Completing a game</text>
+
+  <!-- Bottom Info -->
+  <rect x="50" y="440" width="900" height="50" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="500" y="462" class="heading" text-anchor="middle" fill="#92400e">💡 Important!</text>
+  <text x="500" y="482" class="text" text-anchor="middle">
+    No account needed! No server! All data stays private on YOUR device. 
+  </text>
+</svg>
